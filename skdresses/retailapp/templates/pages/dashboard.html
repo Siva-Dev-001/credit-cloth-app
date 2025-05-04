@@ -1,0 +1,763 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+{% load tz %}
+{% block title %} Dashboard {% endblock title %}
+
+{% block page_css %}
+<style></style>
+{% endblock %}
+
+{% block content %}
+      <!-- Main Content -->
+      <div class="main-content">
+        <section class="section">
+          <div class="row">
+            <div class="col-lg-4 col-md-4 col-sm-12">
+              <div class="card card-statistic-2">
+                <div class="card-stats">
+                  <div class="card-stats-title">Order Statistics - 
+                    <div class="dropdown d-inline">
+                      <a class="font-weight-600 dropdown-toggle" data-toggle="dropdown" href="#" id="orders-month">May</a>
+                      <ul class="dropdown-menu dropdown-menu-sm">
+                        <li class="dropdown-title">Select Month</li>
+                        <li><a href="#" class="dropdown-item">January</a></li>
+                        <li><a href="#" class="dropdown-item">February</a></li>
+                        <li><a href="#" class="dropdown-item">March</a></li>
+                        <li><a href="#" class="dropdown-item">April</a></li>
+                        <li><a href="#" class="dropdown-item active">May</a></li>
+                        <li><a href="#" class="dropdown-item">June</a></li>
+                        <li><a href="#" class="dropdown-item">July</a></li>
+                        <li><a href="#" class="dropdown-item">August</a></li>
+                        <li><a href="#" class="dropdown-item">September</a></li>
+                        <li><a href="#" class="dropdown-item">October</a></li>
+                        <li><a href="#" class="dropdown-item">November</a></li>
+                        <li><a href="#" class="dropdown-item">December</a></li>
+                      </ul>
+                    </div>
+                  </div>
+                  <div class="card-stats-items">
+                    <div class="card-stats-item">
+                      <div class="card-stats-item-count">0</div>
+                      <div class="card-stats-item-label">Due Pending</div>
+                    </div>
+                    <div class="card-stats-item">
+                      <div class="card-stats-item-count">0</div>
+                      <div class="card-stats-item-label">New Purchase</div>
+                    </div>
+                    <div class="card-stats-item">
+                      <div class="card-stats-item-count">0</div>
+                      <div class="card-stats-item-label">Fully Paid</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="card-icon shadow-primary bg-primary">
+                  <i class="fas fa-archive"></i>
+                </div>
+                <div class="card-wrap">
+                  <div class="card-header">
+                    <h4>Total Orders</h4>
+                  </div>
+                  <div class="card-body">
+                    0
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-4 col-md-4 col-sm-12">
+              <div class="card card-statistic-2">
+                <div class="card-chart">
+                  <canvas id="balance-chart" height="80"></canvas>
+                </div>
+                <div class="card-icon shadow-primary bg-primary">
+                  <i class="fas fa-dollar-sign"></i>
+                </div>
+                <div class="card-wrap">
+                  <div class="card-header">
+                    <h4>Balance</h4>
+                  </div>
+                  <div class="card-body">
+                    ₹ {{ total_due|floatformat:2 }}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-4 col-md-4 col-sm-12">
+              <div class="card card-statistic-2">
+                <div class="card-chart">
+                  <canvas id="sales-chart" height="80"></canvas>
+                </div>
+                <div class="card-icon shadow-primary bg-primary">
+                  <i class="fas fa-shopping-bag"></i>
+                </div>
+                <div class="card-wrap">
+                  <div class="card-header">
+                    <h4>Sales</h4>
+                  </div>
+                  <div class="card-body">
+                    {{ purchase_count }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-8">
+              <div class="card">
+                <div class="card-header">
+                  <h4>Customer Pending Dues</h4>
+                  <div class="card-header-action">
+                    <a href="#" class="btn btn-danger">View More <i class="fas fa-chevron-right"></i></a>
+                  </div>
+                </div>
+                <div class="card-body p-0">
+                  <div class="table-responsive table-invoice">
+                    <table class="table table-striped">
+                      <thead class="thead-dark">
+                        <tr>
+                          <th>Customer Name</th>
+                          <th>Total Purchased (₹)</th>
+                          <th>Total Paid (₹)</th>
+                          <th>Pending Due (₹)</th>
+                          <th>First Purchase Date</th>
+                          <th>Last Payment Date</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {% for data in customer_data %}
+                        <tr>
+                          <td class="font-weight-600">{{ data.customer.name }}</td>
+                          <td><a href="#" class="text-primary show-purchases" data-customer-id="{{ data.customer.id }}">{{ data.total_purchased|floatformat:2 }}</a></td>
+                          <td><a href="#" class="text-primary show-payments" data-customer-id="{{ data.customer.id }}">{{ data.total_paid|floatformat:2 }}</a></td>
+                          <td class="font-weight-600">{{ data.pending_due|floatformat:2 }}</td>
+                          <td>{{ data.first_purchase|date:"Y-m-d H:i" }}</td>
+                          <td>{{ data.last_payment|date:"Y-m-d H:i" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                          <td colspan="6" class="text-center">No data available</td>
+                        </tr>
+                        {% endfor %}
+                      </tbody>
+                      <!-- <tr>
+                        <td><a href="#">INV-87239</a></td>
+                        <td class="font-weight-600">Kusnadi</td>
+                        <td><div class="badge badge-warning">Unpaid</div></td>
+                        <td>July 19, 2018</td>
+                        <td>
+                          <a href="#" class="btn btn-primary">Detail</a>
+                        </td>
+                      </tr> -->
+                     
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- <div class="col-lg-8">
+              <div class="card">
+                <div class="card-header">
+                  <h4>Budget vs Sales</h4>
+                </div>
+                <div class="card-body">
+                  <canvas id="myChart" height="158"></canvas>
+                </div>
+              </div>
+            </div> -->
+            <div class="col-lg-4">
+              <div class="card card-hero">
+                <div class="card-header">
+                  <div class="card-icon">
+                    <i class="far fa-question-circle"></i>
+                  </div>
+                  <h4>Cash/ UPI</h4>
+                  <div class="card-description">Payment Entry of all purchases</div>
+                </div>
+                <div class="card-body p-0">
+                  <div class="tickets-list">
+                    <a href="{% url 'record_payment' %}" class="ticket-item">
+                      <div class="ticket-title">
+                        <h4>Start Payment Entry</h4>
+                      </div>
+                      <!-- <div class="ticket-info">
+                        <div>Laila Tazkiah</div>
+                        <div class="bullet"></div>
+                        <div class="text-primary">1 min ago</div>
+                      </div> -->
+                    </a>
+                    <!-- <a href="#" class="ticket-item">
+                      <div class="ticket-title">
+                        <h4>Please cancel my order</h4>
+                      </div>
+                      <div class="ticket-info">
+                        <div>Rizal Fakhri</div>
+                        <div class="bullet"></div>
+                        <div>2 hours ago</div>
+                      </div>
+                    </a>
+                    <a href="#" class="ticket-item">
+                      <div class="ticket-title">
+                        <h4>Do you see my mother?</h4>
+                      </div>
+                      <div class="ticket-info">
+                        <div>Syahdan Ubaidillah</div>
+                        <div class="bullet"></div>
+                        <div>6 hours ago</div>
+                      </div>
+                    </a> -->
+                    <a href="{% url 'payment_history' %}" class="ticket-item ticket-more">
+                      View All Payments<i class="fas fa-chevron-right"></i>
+                    </a>
+                  </div>
+                </div>
+              </div>
+              <!-- <div class="card gradient-bottom">
+                <div class="card-header">
+                  <h4>Top 5 Products</h4>
+                  <div class="card-header-action dropdown">
+                    <a href="#" data-toggle="dropdown" class="btn btn-danger dropdown-toggle">Month</a>
+                    <ul class="dropdown-menu dropdown-menu-sm dropdown-menu-right">
+                      <li class="dropdown-title">Select Period</li>
+                      <li><a href="#" class="dropdown-item">Today</a></li>
+                      <li><a href="#" class="dropdown-item">Week</a></li>
+                      <li><a href="#" class="dropdown-item active">Month</a></li>
+                      <li><a href="#" class="dropdown-item">This Year</a></li>
+                    </ul>
+                  </div>
+                </div>
+                <div class="card-body" id="top-5-scroll">
+                  <ul class="list-unstyled list-unstyled-border">
+                    <li class="media">
+                      <img class="mr-3 rounded" width="55" src="/static/assets/img/products/product-3-50.png" alt="product">
+                      <div class="media-body">
+                        <div class="float-right"><div class="font-weight-600 text-muted text-small">86 Sales</div></div>
+                        <div class="media-title">oPhone S9 Limited</div>
+                        <div class="mt-1">
+                          <div class="budget-price">
+                            <div class="budget-price-square bg-primary" data-width="64%"></div>
+                            <div class="budget-price-label">$68,714</div>
+                          </div>
+                          <div class="budget-price">
+                            <div class="budget-price-square bg-danger" data-width="43%"></div>
+                            <div class="budget-price-label">$38,700</div>
+                          </div>
+                        </div>
+                      </div>
+                    </li>
+                    <li class="media">
+                      <img class="mr-3 rounded" width="55" src="/static/assets/img/products/product-4-50.png" alt="product">
+                      <div class="media-body">
+                        <div class="float-right"><div class="font-weight-600 text-muted text-small">67 Sales</div></div>
+                        <div class="media-title">iBook Pro 2018</div>
+                        <div class="mt-1">
+                          <div class="budget-price">
+                            <div class="budget-price-square bg-primary" data-width="84%"></div>
+                            <div class="budget-price-label">$107,133</div>
+                          </div>
+                          <div class="budget-price">
+                            <div class="budget-price-square bg-danger" data-width="60%"></div>
+                            <div class="budget-price-label">$91,455</div>
+                          </div>
+                        </div>
+                      </div>
+                    </li>
+                    <li class="media">
+                      <img class="mr-3 rounded" width="55" src="/static/assets/img/products/product-1-50.png" alt="product">
+                      <div class="media-body">
+                        <div class="float-right"><div class="font-weight-600 text-muted text-small">63 Sales</div></div>
+                        <div class="media-title">Headphone Blitz</div>
+                        <div class="mt-1">
+                          <div class="budget-price">
+                            <div class="budget-price-square bg-primary" data-width="34%"></div>
+                            <div class="budget-price-label">$3,717</div>
+                          </div>
+                          <div class="budget-price">
+                            <div class="budget-price-square bg-danger" data-width="28%"></div>
+                            <div class="budget-price-label">$2,835</div>
+                          </div>
+                        </div>
+                      </div>
+                    </li>
+                    <li class="media">
+                      <img class="mr-3 rounded" width="55" src="/static/assets/img/products/product-3-50.png" alt="product">
+                      <div class="media-body">
+                        <div class="float-right"><div class="font-weight-600 text-muted text-small">28 Sales</div></div>
+                        <div class="media-title">oPhone X Lite</div>
+                        <div class="mt-1">
+                          <div class="budget-price">
+                            <div class="budget-price-square bg-primary" data-width="45%"></div>
+                            <div class="budget-price-label">$13,972</div>
+                          </div>
+                          <div class="budget-price">
+                            <div class="budget-price-square bg-danger" data-width="30%"></div>
+                            <div class="budget-price-label">$9,660</div>
+                          </div>
+                        </div>
+                      </div>
+                    </li>
+                    <li class="media">
+                      <img class="mr-3 rounded" width="55" src="/static/assets/img/products/product-5-50.png" alt="product">
+                      <div class="media-body">
+                        <div class="float-right"><div class="font-weight-600 text-muted text-small">19 Sales</div></div>
+                        <div class="media-title">Old Camera</div>
+                        <div class="mt-1">
+                          <div class="budget-price">
+                            <div class="budget-price-square bg-primary" data-width="35%"></div>
+                            <div class="budget-price-label">$7,391</div>
+                          </div>
+                          <div class="budget-price">
+                            <div class="budget-price-square bg-danger" data-width="28%"></div>
+                            <div class="budget-price-label">$5,472</div>
+                          </div>
+                        </div>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+                <div class="card-footer pt-3 d-flex justify-content-center">
+                  <div class="budget-price justify-content-center">
+                    <div class="budget-price-square bg-primary" data-width="20"></div>
+                    <div class="budget-price-label">Selling Price</div>
+                  </div>
+                  <div class="budget-price justify-content-center">
+                    <div class="budget-price-square bg-danger" data-width="20"></div>
+                    <div class="budget-price-label">Budget Price</div>
+                  </div>
+                </div>
+              </div> -->
+            </div>
+          </div>
+          <!-- <div class="row">
+            <div class="col-md-6">
+              <div class="card">
+                <div class="card-header">
+                  <h4>Best Products</h4>
+                </div>
+                <div class="card-body">
+                  <div class="owl-carousel owl-theme" id="products-carousel">
+                    <div>
+                      <div class="product-item pb-3">
+                        <div class="product-image">
+                          <img alt="image" src="/static/assets/img/products/product-4-50.png" class="img-fluid">
+                        </div>
+                        <div class="product-details">
+                          <div class="product-name">iBook Pro 2018</div>
+                          <div class="product-review">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                          </div>
+                          <div class="text-muted text-small">67 Sales</div>
+                          <div class="product-cta">
+                            <a href="#" class="btn btn-primary">Detail</a>
+                          </div>
+                        </div>  
+                      </div>
+                    </div>
+                    <div>
+                      <div class="product-item">
+                        <div class="product-image">
+                          <img alt="image" src="/static/assets/img/products/product-3-50.png" class="img-fluid">
+                        </div>
+                        <div class="product-details">
+                          <div class="product-name">oPhone S9 Limited</div>
+                          <div class="product-review">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star-half"></i>
+                          </div>
+                          <div class="text-muted text-small">86 Sales</div>
+                          <div class="product-cta">
+                            <a href="#" class="btn btn-primary">Detail</a>
+                          </div>
+                        </div>  
+                      </div>
+                    </div>
+                    <div>
+                      <div class="product-item">
+                        <div class="product-image">
+                          <img alt="image" src="/static/assets/img/products/product-1-50.png" class="img-fluid">
+                        </div>
+                        <div class="product-details">
+                          <div class="product-name">Headphone Blitz</div>
+                          <div class="product-review">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="far fa-star"></i>
+                          </div>
+                          <div class="text-muted text-small">63 Sales</div>
+                          <div class="product-cta">
+                            <a href="#" class="btn btn-primary">Detail</a>
+                          </div>
+                        </div>  
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card">
+                <div class="card-header">
+                  <h4>Top Countries</h4>
+                </div>
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col-sm-6">
+                      <div class="text-title mb-2">July</div>
+                      <ul class="list-unstyled list-unstyled-border list-unstyled-noborder mb-0">
+                        <li class="media">
+                          <img class="img-fluid mt-1 img-shadow" src="/static/assets/modules/flag-icon-css/flags/4x3/id.svg" alt="image" width="40">
+                          <div class="media-body ml-3">
+                            <div class="media-title">Indonesia</div>
+                            <div class="text-small text-muted">3,282 <i class="fas fa-caret-down text-danger"></i></div>
+                          </div>
+                        </li>
+                        <li class="media">
+                          <img class="img-fluid mt-1 img-shadow" src="/static/assets/modules/flag-icon-css/flags/4x3/my.svg" alt="image" width="40">
+                          <div class="media-body ml-3">
+                            <div class="media-title">Malaysia</div>
+                            <div class="text-small text-muted">2,976 <i class="fas fa-caret-down text-danger"></i></div>
+                          </div>
+                        </li>
+                        <li class="media">
+                          <img class="img-fluid mt-1 img-shadow" src="/static/assets/modules/flag-icon-css/flags/4x3/us.svg" alt="image" width="40">
+                          <div class="media-body ml-3">
+                            <div class="media-title">United States</div>
+                            <div class="text-small text-muted">1,576 <i class="fas fa-caret-up text-success"></i></div>
+                          </div>
+                        </li>
+                      </ul>
+                    </div>
+                    <div class="col-sm-6 mt-sm-0 mt-4">
+                      <div class="text-title mb-2">August</div>
+                      <ul class="list-unstyled list-unstyled-border list-unstyled-noborder mb-0">
+                        <li class="media">
+                          <img class="img-fluid mt-1 img-shadow" src="/static/assets/modules/flag-icon-css/flags/4x3/id.svg" alt="image" width="40">
+                          <div class="media-body ml-3">
+                            <div class="media-title">Indonesia</div>
+                            <div class="text-small text-muted">3,486 <i class="fas fa-caret-up text-success"></i></div>
+                          </div>
+                        </li>
+                        <li class="media">
+                          <img class="img-fluid mt-1 img-shadow" src="/static/assets/modules/flag-icon-css/flags/4x3/ps.svg" alt="image" width="40">
+                          <div class="media-body ml-3">
+                            <div class="media-title">Palestine</div>
+                            <div class="text-small text-muted">3,182 <i class="fas fa-caret-up text-success"></i></div>
+                          </div>
+                        </li>
+                        <li class="media">
+                          <img class="img-fluid mt-1 img-shadow" src="/static/assets/modules/flag-icon-css/flags/4x3/de.svg" alt="image" width="40">
+                          <div class="media-body ml-3">
+                            <div class="media-title">Germany</div>
+                            <div class="text-small text-muted">2,317 <i class="fas fa-caret-down text-danger"></i></div>
+                          </div>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div> -->
+          <div class="row">
+            <div class="col-md-8">
+              <div class="card">
+                <div class="card-header">
+                  <h4>All Payments</h4>
+                  <div class="card-header-action">
+                    <a href="#" class="btn btn-danger">View More <i class="fas fa-chevron-right"></i></a>
+                  </div>
+                </div>
+                <div class="card-body p-0">
+                  <div class="table-responsive table-invoice">
+                    <table class="table table-striped">
+                      <tr>
+                        <th>#</th>
+                        <th>Customer</th>
+                        <th>Amount Paid</th>
+                        <th>Payment Date</th>
+                        <th>Purchase ID</th>
+                      </tr>
+                      {% for payment in page_obj %}
+                        <tr>
+                          <td>{{ forloop.counter }}</td>
+                          <td>{{ payment.purchase.customer.name }}</td>
+                          <td>₹ {{ payment.amount_paid }}</td>
+                          <td>{{ payment.payment_date|date:"Y-m-d" }}</td>
+                          <td>#{{ payment.purchase.id }}</td>
+                        </tr>
+                        {% endfor %}
+                      <!-- <tr>
+                        <td><a href="#">INV-87239</a></td>
+                        <td class="font-weight-600">Kusnadi</td>
+                        <td><div class="badge badge-warning">Unpaid</div></td>
+                        <td>July 19, 2018</td>
+                        <td>
+                          <a href="#" class="btn btn-primary">Detail</a>
+                        </td>
+                      </tr> -->
+                      <!-- <tr>
+                        <td><a href="#">INV-48574</a></td>
+                        <td class="font-weight-600">Hasan Basri</td>
+                        <td><div class="badge badge-success">Paid</div></td>
+                        <td>July 21, 2018</td>
+                        <td>
+                          <a href="#" class="btn btn-primary">Detail</a>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td><a href="#">INV-76824</a></td>
+                        <td class="font-weight-600">Muhamad Nuruzzaki</td>
+                        <td><div class="badge badge-warning">Unpaid</div></td>
+                        <td>July 22, 2018</td>
+                        <td>
+                          <a href="#" class="btn btn-primary">Detail</a>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td><a href="#">INV-84990</a></td>
+                        <td class="font-weight-600">Agung Ardiansyah</td>
+                        <td><div class="badge badge-warning">Unpaid</div></td>
+                        <td>July 22, 2018</td>
+                        <td>
+                          <a href="#" class="btn btn-primary">Detail</a>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td><a href="#">INV-87320</a></td>
+                        <td class="font-weight-600">Ardian Rahardiansyah</td>
+                        <td><div class="badge badge-success">Paid</div></td>
+                        <td>July 28, 2018</td>
+                        <td>
+                          <a href="#" class="btn btn-primary">Detail</a>
+                        </td>
+                      </tr> -->
+                    </table>
+
+                    <nav aria-label="Payment list pagination">
+                      <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                          <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                          </li>
+                        {% else %}
+                          <li class="page-item disabled"><span class="page-link">Previous</span></li>
+                        {% endif %}
+                    
+                        <li class="page-item active"><span class="page-link">{{ page_obj.number }}</span></li>
+                    
+                        {% if page_obj.has_next %}
+                          <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                          </li>
+                        {% else %}
+                          <li class="page-item disabled"><span class="page-link">Next</span></li>
+                        {% endif %}
+                      </ul>
+                    </nav>
+
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <!-- <div class="card card-hero">
+                <div class="card-header">
+                  <div class="card-icon">
+                    <i class="far fa-question-circle"></i>
+                  </div>
+                  <h4>14</h4>
+                  <div class="card-description">Customers need help</div>
+                </div>
+                <div class="card-body p-0">
+                  <div class="tickets-list">
+                    <a href="#" class="ticket-item">
+                      <div class="ticket-title">
+                        <h4>My order hasn't arrived yet</h4>
+                      </div>
+                      <div class="ticket-info">
+                        <div>Laila Tazkiah</div>
+                        <div class="bullet"></div>
+                        <div class="text-primary">1 min ago</div>
+                      </div>
+                    </a>
+                    <a href="#" class="ticket-item">
+                      <div class="ticket-title">
+                        <h4>Please cancel my order</h4>
+                      </div>
+                      <div class="ticket-info">
+                        <div>Rizal Fakhri</div>
+                        <div class="bullet"></div>
+                        <div>2 hours ago</div>
+                      </div>
+                    </a>
+                    <a href="#" class="ticket-item">
+                      <div class="ticket-title">
+                        <h4>Do you see my mother?</h4>
+                      </div>
+                      <div class="ticket-info">
+                        <div>Syahdan Ubaidillah</div>
+                        <div class="bullet"></div>
+                        <div>6 hours ago</div>
+                      </div>
+                    </a>
+                    <a href="features-tickets.html" class="ticket-item ticket-more">
+                      View All <i class="fas fa-chevron-right"></i>
+                    </a>
+                  </div>
+                </div>
+              </div> -->
+            </div>
+          </div>
+        </section>
+      </div>
+
+<!-- Purchased Items Modal -->
+<div class="modal fade" id="purchaseDetailModal" tabindex="-1" aria-labelledby="purchaseDetailModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="purchaseDetailModalLabel">Purchased Items</h5>
+        <button type="button" class="btn-close btn" data-dismiss="modal" aria-label="Close">x</button>
+      </div>
+      <div class="modal-body">
+        <table class="table table-striped" id="purchase-detail-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Item</th>
+              <th>Quantity</th>
+              <th>Unit Price</th>
+              <th>Total</th>
+              <th>Purchase Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Rows will be populated via JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+      <!-- Payment Detail Modal -->
+<div class="modal fade" id="paymentDetailModal" tabindex="-1" aria-labelledby="paymentDetailModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="paymentDetailModalLabel">Payment History</h5>
+        <button type="button" class="btn-close btn" data-dismiss="modal" aria-label="Close">x</button>
+      </div>
+      <div class="modal-body">
+        <table class="table table-striped" id="payment-detail-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Amount Paid</th>
+              <th>Date</th>
+              <th>Collector</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Data will be injected here -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block page_js %} 
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  <script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const modal = new bootstrap.Modal(document.getElementById('paymentDetailModal'));
+
+    document.querySelectorAll('.show-payments').forEach(function (link) {
+      link.addEventListener('click', function (e) {
+        e.preventDefault();
+        const customerId = this.getAttribute('data-customer-id');
+
+        fetch(`/customers/${customerId}/payments/`)
+          .then(response => response.json())
+          .then(data => {
+            const tbody = document.querySelector('#payment-detail-table tbody');
+            tbody.innerHTML = ''; // Clear old data
+
+            if (data.length === 0) {
+              tbody.innerHTML = '<tr><td colspan="4" class="text-muted">No payments yet.</td></tr>';
+            } else {
+              data.forEach((payment, index) => {
+                const row = `<tr>
+                  <td>${index + 1}</td>
+                  <td>₹${payment.amount_paid}</td>
+                  <td>${payment.date}</td>
+                  <td>${payment.collector}</td>
+                </tr>`;
+                tbody.insertAdjacentHTML('beforeend', row);
+              });
+            }
+
+            modal.show();
+          });
+      });
+    });
+  });
+</script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const purchaseModal = new bootstrap.Modal(document.getElementById('purchaseDetailModal'));
+
+    document.querySelectorAll('.show-purchases').forEach(function (link) {
+      link.addEventListener('click', function (e) {
+        e.preventDefault();
+        const customerId = this.getAttribute('data-customer-id');
+
+        fetch(`/customers/${customerId}/purchases/`)
+          .then(response => response.json())
+          .then(data => {
+            const tbody = document.querySelector('#purchase-detail-table tbody');
+            tbody.innerHTML = '';
+
+            if (data.length === 0) {
+              tbody.innerHTML = '<tr><td colspan="6" class="text-muted">No purchases found.</td></tr>';
+            } else {
+              data.forEach((item, index) => {
+                const row = `<tr>
+                  <td>${index + 1}</td>
+                  <td>${item.name}</td>
+                  <td>${item.quantity}</td>
+                  <td>₹${item.unit_price}</td>
+                  <td>₹${item.total_price}</td>
+                  <td>${item.date}</td>
+                </tr>`;
+                tbody.insertAdjacentHTML('beforeend', row);
+              });
+            }
+
+            purchaseModal.show();
+          });
+      });
+    });
+  });
+</script>
+<script>
+  $(document).ready(function () {
+ 
+ setTimeout(function() {
+     $('.alert').fadeOut(); // Hides the alert smoothly
+ }, 10000); // 10 Seconds
+});
+</script>
+{% endblock %}
+    
