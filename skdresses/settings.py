@@ -30,7 +30,7 @@ if not SECRET_KEY:
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['13.216.22.62','localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['13.126.22.62','localhost', '127.0.0.1']
 
 
 # Application definition
