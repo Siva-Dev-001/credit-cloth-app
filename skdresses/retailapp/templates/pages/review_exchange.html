@@ -1,0 +1,62 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block title %} Review Exchange {% endblock title %}
+
+{% block page_css %}
+<style></style>
+{% endblock %}
+
+{% block content %}
+ <!-- Main Content -->
+ <div class="main-content">
+    <section class="section">
+        <div class="section-header">
+            <h1>Review Exchange</h1>
+            <div class="section-header-breadcrumb">
+              <div class="breadcrumb-item active"><a href="/">Dashboard</a></div>
+              <!-- <div class="breadcrumb-item"><a href="#">Bootstrap Components</a></div> -->
+              <div class="breadcrumb-item">Review Exchange</div>
+            </div>
+        </div>
+
+        <div class="container mb-3">
+            <h3>Exchange Review</h3>
+            <p>Customer: {{ req.customer.name }}</p>
+            <p>Reason: {{ req.reason }}</p>
+            <p>Checklist:</p>
+            <ul>
+            <li>Not Washed: {{ req.checklist_not_washed }}</li>
+            <li>Not Cut: {{ req.checklist_not_cut }}</li>
+            <li>PPE Intact: {{ req.checklist_ppe_intact }}</li>
+            </ul>
+
+            <form method="post">
+            {% csrf_token %}
+            <label>Select Replacement Item (Optional):</label>
+            <select name="replacement_item" class="form-control">
+                <option value="">-- None --</option>
+                {% for item in inventory %}
+                <option value="{{ item.id }}">{{ item.name }} - ₹{{ item.markup_price }}</option>
+                {% endfor %}
+            </select>
+
+            <button name="action" value="approve" class="btn btn-success mt-2">Approve</button>
+            <button name="action" value="reject" class="btn btn-danger mt-2">Reject</button>
+            </form>
+
+        </div>
+</section>
+</div>
+{% endblock %}
+
+{% block page_js %} 
+<!-- <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script> -->
+<script>
+$(document).ready(function () {
+  setTimeout(function() {
+      $('.alert').fadeOut(); // Hides the alert smoothly
+  }, 10000); // 10 Seconds
+});
+</script>
+{% endblock %}        

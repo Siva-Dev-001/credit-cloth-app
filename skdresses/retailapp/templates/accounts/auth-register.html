@@ -179,3 +179,13 @@
     </div>
   </section>
 {% endblock %}
+{% block page_js %}
+<script>
+  $(document).ready(function () {
+ 
+ setTimeout(function() {
+     $('.alert').fadeOut(); // Hides the alert smoothly
+ }, 10000); // 10 Seconds
+});
+</script>
+{% endblock %}

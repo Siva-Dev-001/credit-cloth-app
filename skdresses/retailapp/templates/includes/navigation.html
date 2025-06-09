@@ -1,3 +1,4 @@
+{% load i18n %}
 <div class="navbar-bg"></div>
       <nav class="navbar navbar-expand-lg main-navbar">
         <form class="form-inline mr-auto">
@@ -69,6 +70,20 @@
           </div>
         </form>
         <ul class="navbar-nav navbar-right">
+          <li class="dropdown dropdown-list-toggle" style="display: none;">
+           <form action="{% url 'set_language' %}" method="post">
+          {% csrf_token %}
+          <input name="next" type="hidden" value="{{ request.path }}">
+          <select name="language" class="selectric">
+            <option value="en" {% if LANGUAGE_CODE == 'en' %}selected{% endif %}>English</option>
+            <option value="ta" {% if LANGUAGE_CODE == 'ta' %}selected{% endif %}>தமிழ்</option>
+            <option value="te" {% if LANGUAGE_CODE == 'te' %}selected{% endif %}>తెలుగు</option>
+            <option value="kn" {% if LANGUAGE_CODE == 'kn' %}selected{% endif %}>ಕನ್ನಡ</option>
+            <option value="ml" {% if LANGUAGE_CODE == 'ml' %}selected{% endif %}>മലയാളം</option>
+          </select>
+          <input type="submit" value="{% trans 'Change Language' %}" class="btn btn-sm btn-light">
+        </form>
+          </li>
           <li class="dropdown dropdown-list-toggle"><a href="#" data-toggle="dropdown" class="nav-link nav-link-lg message-toggle beep"><i class="far fa-envelope"></i></a>
             <div class="dropdown-menu dropdown-list dropdown-menu-right">
               <div class="dropdown-header">Messages

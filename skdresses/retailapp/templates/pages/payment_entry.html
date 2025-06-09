@@ -56,7 +56,7 @@
                   
                     <div class="form-group">
                       <label for="amount_paid">Amount Paid:</label>
-                      <input type="number" name="amount_paid" step="0.01" class="form-control" placeholder="100.00" required>
+                      <input type="number" name="amount_paid" step="0.01" class="form-control" placeholder="0.00" required>
                     </div>
 
                     <div class="form-group mb-3">
@@ -85,7 +85,7 @@
 {% endblock %}
 
 {% block page_js %} 
-<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<!-- <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script> -->
 <script>
 $(document).ready(function () {
   setTimeout(function() {

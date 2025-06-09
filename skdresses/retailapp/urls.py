@@ -17,7 +17,9 @@ urlpatterns = [
     path('inventory/', views.inventory_list, name='inventory_list'),
     path('inventory/add/', views.add_inventory_item, name='add_inventory_item'),
     path('inventory/edit/<int:item_id>/', views.edit_inventory_item, name='edit_inventory_item'),
+    path('inventory/delete/<int:item_id>/', views.delete_inventory_item, name='delete_inventory_item'),
     path('customers/<int:customer_id>/payments/', views.customer_payments_json, name='customer_payments_json'),
     path('customers/<int:customer_id>/purchases/', views.customer_purchases_json, name='customer_purchases_json'),
-
+    path('create-exchange/<int:item_id>/', views.create_exchange_request, name='create_exchange_request'),
+    path('review-exchange/<int:exchange_id>/', views.admin_review_exchange, name='admin_review_exchange'),
 ]

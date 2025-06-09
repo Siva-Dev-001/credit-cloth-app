@@ -19,18 +19,18 @@
               <div class="breadcrumb-item">Customers</div>
             </div>
         </div>
-        
+         
         <div class="card">
           <div class="card-header">
             <h4>List of all customers</h4>
             <div class="card-header-action">
-              <a href="#addc"  class="btn btn-primary"><i class="fas fa-plus"></i> Add Customer</a>
+              <a href="#addc"  class="btn btn-primary"><i class="fas fa-plus mr-2"></i> Add Customer</a>
             </div>
           </div>
           <div class="card-body p-0">
             <div class="table-responsive">
               <table class="table table-striped table-md">
-                <tr>
+                <thead>
                   <tr>
                     <th>#</th>
                     <th>User</th>
@@ -44,7 +44,8 @@
                     <th>Payment Frequency</th>
                     <th>Actions</th>
                   </tr>
-                </tr>
+                </thead>
+                <tbody>
                 {% for customer in customers %}
                 <tr>
                   <td>{{ forloop.counter }}</td>
@@ -69,6 +70,7 @@
                   <td colspan="7" class="text-center">No customers found.</td>
                 </tr>
                 {% endfor %}
+                </tbody>
                 <!-- <tr>
                   <td>1</td>
                   <td>Irwansyah Saputra</td>
@@ -154,6 +156,23 @@
         <div class="card" id="addc">
           <div class="card-header"><h4>New Customer Registration</h4></div>
           <div class="card-body">
+                {% if messages %}
+                {% for msg in messages %}
+                <div class="alert {{msg.tags}} alert-dismissible" role="alert">
+                  
+                  <div class="alert-body">
+                    <button class="close" data-dismiss="alert">
+                      <span>×</span>
+                    </button>
+                    {{msg}}
+                  </div>
+                  
+                </div>
+                {% endfor %}
+              {% endif %}
+              </div>
+
+          <div class="card-body">
         
         <form id="customer-form" method="POST" >
             {% csrf_token %}
@@ -191,14 +210,22 @@
                     <option value="Velappan Nagar">Velappan Nagar</option>
                   </select>
                 </div>
-                <div class="form-group mb-3 col-6">
+                <!-- <div class="form-group mb-3 col-6">
                     <label for="city" class="form-label">City</label>
                     <input type="text" class="form-control" id="city" name="city" required>
                 </div>
                 <div class="form-group mb-3 col-6">
                     <label for="pin" class="form-label">Pincode</label>
                     <input type="text" class="form-control" id="pin" name="pin" required>
-                </div>
+                </div> -->
+                <div class="form-group mb-3 col-6">
+                <label for="payment_frequency" class="form-label">Payment Frequency</label>
+                <select class="form-control selectric" id="payment_frequency" name="payment_frequency" required>
+                  <option value="">Select</option>
+                  <option value="Weekly">Weekly</option>
+                  <option value="Monthly">Monthly</option>
+                </select>
+              </div>
             </div>
             <!-- <div class="mb-3">
               <label for="lat" class="form-label">Latitude</label>
@@ -208,14 +235,7 @@
               <label for="lng" class="form-label">Longitude</label>
               <input type="text" class="form-control" id="lng" name="lng">
             </div> -->
-            <div class="form-group mb-3">
-              <label for="payment_frequency" class="form-label">Payment Frequency</label>
-              <select class="form-control selectric" id="payment_frequency" name="payment_frequency" required>
-                <option value="">Select</option>
-                <option value="Weekly">Weekly</option>
-                <option value="Monthly">Monthly</option>
-              </select>
-            </div>
+            
             <!-- <div class="form-group">
                 <div class="custom-control custom-checkbox">
                   <input type="checkbox" name="agree" class="custom-control-input" id="agree" required>
@@ -233,6 +253,8 @@
 {% endblock %}
 
 {% block page_js %} 
+<!-- <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script> -->
+
 <script>
 
 </script>

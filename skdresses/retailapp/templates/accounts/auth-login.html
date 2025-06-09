@@ -2,6 +2,14 @@
 {% load static %}
 
 {% block title %} Login {% endblock title %}
+{% block page_css %}
+<style>
+  #togglePassword {
+    border-left: none;
+  }
+  
+</style>
+{% endblock %}
 
 {% block content %}
     <section class="section">
@@ -42,7 +50,16 @@
                   </div>
 
                   <div class="form-group">
-                    <div class="d-block">
+                    <div class="mb-3 position-relative">
+                      <label for="password" class="form-label">Password</label>
+                      <div class="input-group">
+                          <input type="password" class="form-control" id="password" name="password" required>
+                          <span class="input-group-text" id="togglePassword" style="cursor: pointer;">
+                              <i class="fas fa-eye" id="eyeIcon"></i>
+                          </span>
+                      </div>
+                  </div>
+                    <!-- <div class="d-block">
                     	<label for="password" class="control-label">Password</label>
                       <div class="float-right">
                         <a href="auth-forgot-password.html" class="text-small">
@@ -50,18 +67,18 @@
                         </a>
                       </div>
                     </div>
-                    <input id="password" type="password" class="form-control" name="password" tabindex="2" required>
+                    <input id="password" type="password" class="form-control" name="password" tabindex="2" required> -->
                     <div class="invalid-feedback">
                       please fill in your password
                     </div>
                   </div>
 
-                  <div class="form-group">
+                  <!-- <div class="form-group">
                     <div class="custom-control custom-checkbox">
                       <input type="checkbox" name="remember" class="custom-control-input" tabindex="3" id="remember-me">
                       <label class="custom-control-label" for="remember-me">Remember Me</label>
                     </div>
-                  </div>
+                  </div> -->
 
                   <div class="form-group">
                     <button type="submit" class="btn btn-primary btn-lg btn-block" tabindex="4">
@@ -99,4 +116,26 @@
     </section>
 
 {% endblock content %}
+{% block page_js %}
+<!-- Toggle password script -->
+<script>
+  const togglePassword = document.querySelector("#togglePassword");
+  const password = document.querySelector("#password");
+  const eyeIcon = document.querySelector("#eyeIcon");
+
+  togglePassword.addEventListener("click", function () {
+      const type = password.getAttribute("type") === "password" ? "text" : "password";
+      password.setAttribute("type", type);
+      eyeIcon.classList.toggle("fa-eye");
+      eyeIcon.classList.toggle("fa-eye-slash");
+  });
+</script>
+<script>
+  $(document).ready(function () {
  
+ setTimeout(function() {
+     $('.alert').fadeOut(); // Hides the alert smoothly
+ }, 10000); // 10 Seconds
+});
+</script>
+{% endblock %}

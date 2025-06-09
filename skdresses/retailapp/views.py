@@ -5,10 +5,10 @@ from django.contrib.auth.models import User
 from django.core.paginator import Paginator
 from django.utils import timezone
 from django.contrib import messages
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.db.models import Sum, Count, Min, Max
 from .forms import InventoryItemForm 
-from .models import Customer, DressPurchase, Payment, ReturnOrExchange, PurchaseItem, InventoryItem
+from .models import Customer, DressPurchase, Payment, ReturnOrExchange, PurchaseItem, InventoryItem, ReturnRequest, ExchangeRequest
 
 # Login view
 def login_view(request):
@@ -21,7 +21,7 @@ def login_view(request):
             request.session['userid'] = user.pk
             request.session['username'] = user.username
             request.session['email'] = user.email
-            messages.success(request, 'Login successful!')
+            # messages.success(request, 'Login successful!')
             return redirect('dashboard')
         else:
             messages.error(request, 'Invalid Credentials')
@@ -30,12 +30,13 @@ def login_view(request):
 
 # Logout view
 def logout_view(request):
-    request.session.flush()
     logout(request)
+    request.session.flush()
+    messages.info(request, 'You are logged out. Login to continue')
     return redirect('login')
 
 # Dashboard view
-@login_required
+# @login_required
 def dashboard(request):
     customers_count = Customer.objects.count()
     customers = Customer.objects.all()
@@ -94,22 +95,28 @@ def register(request):
     return render(request, 'accounts/auth-register.html')
 
 # Customer registration view
-@login_required
+# @login_required
 def register_customer(request):
     customers = Customer.objects.all()
     if request.method == 'POST':
-        Customer.objects.create(
-            name=request.POST['name'],
-            phone=request.POST['phone'],
-            address_line1=request.POST['address_line1'],
-            address_line2=request.POST.get('address_line2', ''),
-            area=request.POST['area'],
-            city=request.POST['city'],
-            pin=request.POST['pin'],
-            # lat=request.POST.get('lat'),
-            # lng=request.POST.get('lng'),
-            payment_frequency=request.POST['payment_frequency']
-        )
+        if Customer.objects.filter(phone= request.POST.get('phone')).exists():
+            messages.error(request,'Customer already exists!')
+            return redirect('add_customer')
+        else:
+            Customer.objects.create(
+                name=request.POST['name'],
+                phone=request.POST['phone'],
+                address_line1=request.POST['address_line1'],
+                address_line2=request.POST.get('address_line2', ''),
+                area=request.POST['area'],
+                # city=request.POST['city'],
+                # pin=request.POST['pin'],
+                city = "Chennai", pin = "600077",
+                # lat=request.POST.get('lat'),
+                # lng=request.POST.get('lng'),
+                payment_frequency=request.POST['payment_frequency']
+            )
+            messages.success(request,'New Customer added successfully!')
         return redirect('purchase_product')
     return render(request, 'pages/add_customer.html', {'customers': customers, 'segment': 'add_customer'})
 
@@ -136,7 +143,7 @@ def customer_delete(request, pk):
     return render(request, 'pages/customer_delete.html', {'customer': customer})
 
 # Dress purchase view
-@login_required
+# @login_required
 def purchase_product(request):
     customers = Customer.objects.all()
     if request.method == 'POST':
@@ -170,7 +177,7 @@ def purchase_product(request):
     return render(request, 'pages/product_purchase.html', {'customers': customers, 'segment': 'product_purchase'})
 
 # Payment entry view
-@login_required
+# @login_required
 def record_payment(request):
     purchases = DressPurchase.objects.select_related('customer').all()
     if request.method == 'POST':
@@ -200,7 +207,7 @@ def payment_history(request):
     return render(request, 'pages/payment_history.html', context)
 
 # Return or Exchange view
-@login_required
+# @login_required
 def submit_return_exchange(request):
     purchases = DressPurchase.objects.select_related('customer').all()
     if request.method == 'POST':
@@ -230,10 +237,11 @@ def add_inventory_item(request):
             markup_price=request.POST.get('markup_price') or 0,
             unit=request.POST.get('unit'),
         )
+        messages.success(request,'New Item added inventory successfully!')
         return redirect('inventory_list')
     inventory_items = InventoryItem.objects.all().order_by('-updated_at')
     context = {'inventory_items': inventory_items, 'segment': 'inventory', 'title': 'Add Inventory Item' }
-    return render(request, 'pages/inventory_list.html', context)
+    return render(request, 'pages/add_edit_inventory.html', context)
 
 def edit_inventory_item(request, item_id):
     item = get_object_or_404(InventoryItem, id=item_id)
@@ -248,10 +256,23 @@ def edit_inventory_item(request, item_id):
         item.markup_price = request.POST.get('markup_price') or 0
         item.unit = request.POST.get('unit')
         item.save()
+
+        messages.success(request,'Modified inventory item successfully!')
         return redirect('inventory_list')
     inventory_items = InventoryItem.objects.all().order_by('-updated_at')
     context = {'inventory_items': inventory_items, 'segment': 'inventory','title': 'Edit Inventory Item' , 'item': item}
-    return render(request, 'pages/inventory_list.html', context)
+    return render(request, 'pages/add_edit_inventory.html', context)
+
+def delete_inventory_item(request, item_id):
+    item = get_object_or_404(InventoryItem, id=item_id)
+
+    if item:
+        item.delete()
+        messages.success(request, "Inventory item deleted successfully.")
+        return redirect('inventory_list')
+
+    messages.warning(request, "Invalid request method.")
+    return redirect('inventory_list')
 
 def customer_payments_json(request, customer_id):
     payments = Payment.objects.filter(purchase__customer_id=customer_id).order_by('-payment_date_time')
@@ -278,3 +299,66 @@ def customer_purchases_json(request, customer_id):
         for item in purchases
     ]
     return JsonResponse(data, safe=False)
+
+def create_return_request(request, item_id):
+    item = get_object_or_404(PurchaseItem, id=item_id)
+    if request.method == 'POST':
+        days_since_purchase = (timezone.now().date() - item.purchase_date).days
+        if days_since_purchase > 7:
+            return HttpResponse("Return period expired.", status=400)
+
+        ReturnRequest.objects.create(
+            customer=item.customer,
+            purchased_item=item,
+            reason=request.POST['reason'],
+            photo=request.FILES['photo']
+        )
+        return redirect('customer_summary')
+
+    return render(request, 'pages/create_return.html', {'item': item})
+
+def admin_review_return(request, return_id):
+    r = get_object_or_404(ReturnRequest, id=return_id)
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        if action == 'accept':
+            r.is_approved = True
+            # Logic to adjust balance or issue replacement
+        elif action == 'reject':
+            r.is_approved = False
+        r.save()
+        return redirect('return_requests_admin')
+
+    return render(request, 'pages/review_return.html', {'request_obj': r})
+
+def create_exchange_request(request, item_id):
+    item = get_object_or_404(PurchaseItem, id=item_id)
+    if request.method == 'POST':
+        ExchangeRequest.objects.create(
+            customer=item.customer,
+            purchased_item=item,
+            reason=request.POST['reason'],
+            checklist_not_washed='not_washed' in request.POST,
+            checklist_not_cut='not_cut' in request.POST,
+            checklist_ppe_intact='ppe_intact' in request.POST
+        )
+        return redirect('customer_summary')
+
+    return render(request, 'pages/create_exchange.html', {'item': item})
+
+def admin_review_exchange(request, exchange_id):
+    req = get_object_or_404(ExchangeRequest, id=exchange_id)
+    if request.method == 'POST':
+        action = request.POST['action']
+        if action == 'approve':
+            req.is_approved = True
+            replacement_id = request.POST.get('replacement_item')
+            if replacement_id:
+                req.replacement_item = InventoryItem.objects.get(id=replacement_id)
+        elif action == 'reject':
+            req.is_approved = False
+        req.save()
+        return redirect('exchange_requests_admin')
+
+    inventory = InventoryItem.objects.all()
+    return render(request, 'pages/review_exchange.html', {'req': req, 'inventory': inventory})

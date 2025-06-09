@@ -91,3 +91,23 @@ class InventoryItem(models.Model):
 
     def __str__(self):
         return self.name
+    
+class ReturnRequest(models.Model):
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
+    purchased_item = models.ForeignKey(PurchaseItem, on_delete=models.CASCADE)
+    reason = models.TextField()
+    photo = models.ImageField(upload_to='return_photos/')
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_approved = models.BooleanField(null=True, blank=True)
+
+class ExchangeRequest(models.Model):
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
+    purchased_item = models.ForeignKey(PurchaseItem, on_delete=models.CASCADE)
+    reason = models.TextField()
+    checklist_not_washed = models.BooleanField(default=False)
+    checklist_not_cut = models.BooleanField(default=False)
+    checklist_ppe_intact = models.BooleanField(default=False)
+    is_approved = models.BooleanField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    replacement_item = models.ForeignKey(InventoryItem, null=True, blank=True, on_delete=models.SET_NULL)
+

@@ -8,6 +8,8 @@
   <!-- General CSS Files -->
   <link rel="stylesheet" href="/static/assets/modules/bootstrap/css/bootstrap.min.css">
   <link rel="stylesheet" href="/static/assets/modules/fontawesome/css/all.min.css">
+  <link rel="stylesheet" href="/static/assets/modules/ionicons/css/ionicons.min.css">
+  <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"> -->
 
   <!-- CSS Libraries -->
   <link rel="stylesheet" href="/static/assets/modules/jqvmap/dist/jqvmap.min.css">
@@ -18,6 +20,8 @@
   <!-- Template CSS -->
   <link rel="stylesheet" href="/static/assets/css/style.css">
   <link rel="stylesheet" href="/static/assets/css/components.css">
+
+  <link rel="shortcut icon" href="/static/assets/img/SK_logo.png" type="image/x-icon"/>
 
   {% block page_css %} {% endblock %}
 
@@ -31,6 +35,7 @@
     <div class="main-wrapper main-wrapper-1">
         {% include 'includes/navigation.html' %}
         {% include 'includes/sidebar.html' %}
+        {% load i18n %}
         {% block content %} {% endblock %}
       
     </div>
@@ -51,14 +56,15 @@
   <script src="/static/assets/modules/owlcarousel2/dist/owl.carousel.min.js"></script>
   <script src="/static/assets/modules/summernote/summernote-bs4.js"></script>
   <script src="/static/assets/modules/chocolat/dist/js/jquery.chocolat.min.js"></script>
-
+  <script src="/static/assets/js/page/bootstrap-modal.js"></script>
+  {% block page_js %} {% endblock %}
   <!-- Page Specific JS File -->
   <script src="/static/assets/js/page/index.js"></script>
   
   <!-- Template JS File -->
   <script src="/static/assets/js/scripts.js"></script>
   <script src="/static/assets/js/custom.js"></script>
-    {% block page_js %} {% endblock %}
+    
     {% include 'includes/footer.html' %}
 </body>
 </html>

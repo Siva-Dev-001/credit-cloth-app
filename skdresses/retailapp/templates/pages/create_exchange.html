@@ -1,0 +1,60 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block title %} Create Exchange {% endblock title %}
+
+{% block page_css %}
+<style></style>
+{% endblock %}
+
+{% block content %}
+ <!-- Main Content -->
+ <div class="main-content">
+    <section class="section">
+        <div class="section-header">
+            <h1>Create Exchange</h1>
+            <div class="section-header-breadcrumb">
+              <div class="breadcrumb-item active"><a href="/">Dashboard</a></div>
+              <!-- <div class="breadcrumb-item"><a href="#">Bootstrap Components</a></div> -->
+              <div class="breadcrumb-item">Create Exchange</div>
+            </div>
+        </div>
+
+        <div class="container mb-3">
+            <h3>Request Exchange</h3>
+            <form method="post">
+            {% csrf_token %}
+            <label>Reason</label>
+            <textarea name="reason" class="form-control" required></textarea>
+
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="not_washed" id="not_washed">
+                <label class="form-check-label" for="not_washed">Not Washed</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="not_cut" id="not_cut">
+                <label class="form-check-label" for="not_cut">Not Cut/Stretched</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="ppe_intact" id="ppe_intact">
+                <label class="form-check-label" for="ppe_intact">PPE Cover Intact</label>
+            </div>
+
+            <button type="submit" class="btn btn-warning mt-3">Submit Exchange Request</button>
+            </form>
+
+        </div>
+</section>
+</div>
+{% endblock %}
+
+{% block page_js %} 
+<!-- <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script> -->
+<script>
+$(document).ready(function () {
+  setTimeout(function() {
+      $('.alert').fadeOut(); // Hides the alert smoothly
+  }, 10000); // 10 Seconds
+});
+</script>
+{% endblock %}        
