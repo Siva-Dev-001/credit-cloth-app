@@ -38,49 +38,52 @@ def logout_view(request):
 # Dashboard view
 # @login_required
 def dashboard(request):
-    customers_count = Customer.objects.count()
-    customers = Customer.objects.all()
-    purchases_count = DressPurchase.objects.count()
-    payments_all = Payment.objects.count()
-    pay_history = Payment.objects.all()
-    due_total = sum([p.due_amount for p in DressPurchase.objects.all()])
+    if 'userid' in request.session:
+        customers_count = Customer.objects.count()
+        customers = Customer.objects.all()
+        purchases_count = DressPurchase.objects.count()
+        payments_all = Payment.objects.count()
+        pay_history = Payment.objects.all()
+        due_total = sum([p.due_amount for p in DressPurchase.objects.all()])
 
-    customer_data = []
-    for customer in customers:
-        purchases = DressPurchase.objects.filter(customer=customer)
-        
-        total_purchased = purchases.aggregate(total=Sum('total_amount'))['total'] or 0
-        total_paid = sum(p.paid_amount for p in purchases)  # paid_amount property!
-        pending_due = total_purchased - total_paid
-        
-        first_purchase = purchases.aggregate(first_date=Min('purchase_date'))['first_date']
-        
-        payments = Payment.objects.filter(purchase__customer=customer)
-        last_payment = payments.aggregate(last_date=Max('payment_date_time'))['last_date']
-        
-        customer_data.append({
-            'customer': customer,
-            'total_purchased': total_purchased,
-            'total_paid': total_paid,
-            'pending_due': pending_due,
-            'first_purchase': first_purchase,
-            'last_payment': last_payment,
-        })
+        customer_data = []
+        for customer in customers:
+            purchases = DressPurchase.objects.filter(customer=customer)
+            
+            total_purchased = purchases.aggregate(total=Sum('total_amount'))['total'] or 0
+            total_paid = sum(p.paid_amount for p in purchases)  # paid_amount property!
+            pending_due = total_purchased - total_paid
+            
+            first_purchase = purchases.aggregate(first_date=Min('purchase_date'))['first_date']
+            
+            payments = Payment.objects.filter(purchase__customer=customer)
+            last_payment = payments.aggregate(last_date=Max('payment_date_time'))['last_date']
+            
+            customer_data.append({
+                'customer': customer,
+                'total_purchased': total_purchased,
+                'total_paid': total_paid,
+                'pending_due': pending_due,
+                'first_purchase': first_purchase,
+                'last_payment': last_payment,
+            })
 
-    payments = Payment.objects.select_related('purchase__customer').order_by('-payment_date')
-    paginator = Paginator(payments, 10)  # 10 payments per page
+        payments = Payment.objects.select_related('purchase__customer').order_by('-payment_date')
+        paginator = Paginator(payments, 10)  # 10 payments per page
 
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
 
-    context = {
-        'customers': customers, 'customer_data': customer_data,
-        'customer_count': customers_count,
-        'purchase_count': purchases_count,
-        'payment_count': payments_all, 'segment': 'dashboard',
-        'total_due': due_total, 'pay_history': pay_history, 'page_obj': page_obj
-    }
-    return render(request, 'pages/dashboard.html', context)
+        context = {
+            'customers': customers, 'customer_data': customer_data,
+            'customer_count': customers_count,
+            'purchase_count': purchases_count,
+            'payment_count': payments_all, 'segment': 'dashboard',
+            'total_due': due_total, 'pay_history': pay_history, 'page_obj': page_obj
+        }
+        return render(request, 'pages/dashboard.html', context)
+    else:
+        return redirect('login')
 
 def register(request):
     if request.method == 'POST':
