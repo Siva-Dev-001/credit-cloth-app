@@ -42,7 +42,7 @@ def logout_view(request):
 # Dashboard view
 # @login_required
 def dashboard(request):
-    if 'userid' in request.session:
+    if 'username' in request.session:
         print("I'm in dashboard")
         customers_count = Customer.objects.count()
         customers = Customer.objects.all()
