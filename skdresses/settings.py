@@ -92,7 +92,7 @@ print("DB_HOST =", DB_HOST)
 print("DB_PORT =", DB_PORT)
 # if DB_ENGINE and DB_NAME and DB_USERNAME:
 DATABASES = { 
-    'postgresql-db': {
+    'default': {
     'ENGINE'  : 'django.db.backends.' + DB_ENGINE, 
     'NAME'    : DB_NAME,
     'USER'    : DB_USERNAME,
