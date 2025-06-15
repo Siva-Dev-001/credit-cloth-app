@@ -22,9 +22,13 @@ def login_view(request):
             request.session['username'] = user.username
             request.session['email'] = user.email
             # messages.success(request, 'Login successful!')
+            print("+++++++++++++++++++")
+            print("\n\n USER ID:", request.session['userid'])
+            print("--------------------")
             return redirect('dashboard')
         else:
             messages.error(request, 'Invalid Credentials')
+            print("Invalid Credentials ----------------")
             return render(request, 'accounts/auth-login.html')
     return render(request, 'accounts/auth-login.html')
 
@@ -39,6 +43,7 @@ def logout_view(request):
 # @login_required
 def dashboard(request):
     if 'userid' in request.session:
+        print("I'm in dashboard")
         customers_count = Customer.objects.count()
         customers = Customer.objects.all()
         purchases_count = DressPurchase.objects.count()
