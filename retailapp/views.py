@@ -9,6 +9,18 @@ from django.http import JsonResponse, HttpResponse
 from django.db.models import Sum, Count, Min, Max
 from .forms import InventoryItemForm 
 from .models import Customer, DressPurchase, Payment, ReturnOrExchange, PurchaseItem, InventoryItem, ReturnRequest, ExchangeRequest
+import boto3
+from django.conf import settings
+from django.utils.timezone import now
+
+def get_sns_client():
+    return boto3.client(
+        'sns',
+        aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+        region_name=settings.AWS_REGION
+    )
+
 
 # Login view
 def login_view(request):
@@ -21,14 +33,11 @@ def login_view(request):
             request.session['userid'] = user.pk
             request.session['username'] = user.username
             request.session['email'] = user.email
+            request.session['last_seen'] = now().isoformat()
             # messages.success(request, 'Login successful!')
-            print("+++++++++++++++++++")
-            print("\n\n USER ID:", request.session['userid'])
-            print("--------------------")
             return redirect('dashboard')
         else:
             messages.error(request, 'Invalid Credentials')
-            print("Invalid Credentials ----------------")
             return render(request, 'accounts/auth-login.html')
     return render(request, 'accounts/auth-login.html')
 
@@ -42,7 +51,6 @@ def logout_view(request):
 # Dashboard view
 @login_required
 def dashboard(request):
-    print("I'm in dashboard")
     customers_count = Customer.objects.count()
     customers = Customer.objects.all()
     purchases_count = DressPurchase.objects.count()
@@ -103,7 +111,6 @@ def register(request):
 # Customer registration view
 # @login_required
 def register_customer(request):
-    customers = Customer.objects.all()
     if request.method == 'POST':
         if Customer.objects.filter(phone= request.POST.get('phone')).exists():
             messages.error(request,'Customer already exists!')
@@ -112,8 +119,8 @@ def register_customer(request):
             Customer.objects.create(
                 name=request.POST['name'],
                 phone=request.POST['phone'],
-                address_line1=request.POST['address_line1'],
-                address_line2=request.POST.get('address_line2', ''),
+                # address_line1=request.POST['address_line1'],
+                # address_line2=request.POST.get('address_line2', ''),
                 area=request.POST['area'],
                 # city=request.POST['city'],
                 # pin=request.POST['pin'],
@@ -122,9 +129,25 @@ def register_customer(request):
                 # lng=request.POST.get('lng'),
                 payment_frequency=request.POST['payment_frequency']
             )
+            
+            message = f"Hi {request.POST['name']}, welcome to SK Dresses!"
+            try:
+                client = get_sns_client()
+                response = client.publish(
+                    PhoneNumber = request.POST['phone'],
+                    Message=message
+                )
+                print("SNS Response:", response)
+            except Exception as e:
+                print("SNS Error:", e)
+            # msg call
             messages.success(request,'New Customer added successfully!')
         return redirect('purchase_product')
-    return render(request, 'pages/add_customer.html', {'customers': customers, 'segment': 'add_customer'})
+    return render(request, 'pages/add_customer.html', {'segment': 'add_customer'})
+
+def list_customers(request):
+    customers = Customer.objects.all()
+    return render(request, 'pages/list_customers.html', {'customers': customers, 'segment': 'list_customers'})
 
 def customer_detail(request, pk):
     customer = get_object_or_404(Customer, pk=pk)
@@ -136,6 +159,18 @@ def customer_edit(request, pk):
         # form = CustomerForm(request.POST, instance=customer)
         # if form.is_valid():
         #     form.save()
+        Customer.objects.filter(pk = pk).update(
+                name=request.POST['name'],
+                phone=request.POST['phone'],
+                address_line1=request.POST['address_line1'],
+                address_line2=request.POST.get('address_line2', ''),
+                area=request.POST['area'],
+                city=request.POST['city'],
+                pin=request.POST['pin'],
+                # lat=request.POST.get('lat'),
+                # lng=request.POST.get('lng'),
+                payment_frequency=request.POST['payment_frequency']
+            )
         return redirect('add_customer')
     # else:
     #     form = CustomerForm(instance=customer)
@@ -143,10 +178,10 @@ def customer_edit(request, pk):
 
 def customer_delete(request, pk):
     customer = get_object_or_404(Customer, pk=pk)
-    if request.method == 'POST':
-        customer.delete()
-        return redirect('add_customer')
-    return render(request, 'pages/customer_delete.html', {'customer': customer})
+    # if request.method == 'POST':
+    customer.delete()
+    return redirect('add_customer')
+    # return render(request, 'pages/customer_delete.html', {'customer': customer})
 
 # Dress purchase view
 # @login_required
@@ -157,6 +192,7 @@ def purchase_product(request):
         customer = get_object_or_404(Customer, id=request.POST['customer'])
         downpayment = float(request.POST.get('downpayment', 0))
         payment_type=request.POST['payment_mode']
+        reference_id = request.POST.get('reference_id')
         # Add Purchased Items
         purchase = DressPurchase.objects.create(
             customer=customer,
@@ -178,7 +214,7 @@ def purchase_product(request):
         purchase.total_amount = total_amount
         purchase.save()
         # Add Payment Info
-        Payment.objects.create(purchase=purchase, amount_paid=downpayment, payment_type=request.POST['payment_mode'])
+        Payment.objects.create(purchase=purchase, amount_paid=downpayment, payment_type=payment_type, reference_id=reference_id)
         return redirect('purchase_product')
     return render(request, 'pages/product_purchase.html', {'customers': customers, 'segment': 'product_purchase'})
 
@@ -194,7 +230,8 @@ def record_payment(request):
                 purchase=purchase,
                 amount_paid=request.POST['amount_paid'],
                 payment_type=request.POST['payment_mode'],
-                collected_by=request.session.get('username','')
+                collected_by=request.session.get('username',''),
+                reference_id=request.session.get('reference_id',''),
             )
             messages.success(request,'Payment recorded successfully!')
         except Exception as e:

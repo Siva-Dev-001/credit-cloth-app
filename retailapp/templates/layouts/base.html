@@ -64,7 +64,40 @@
   <!-- Template JS File -->
   <script src="/static/assets/js/scripts.js"></script>
   <script src="/static/assets/js/custom.js"></script>
-    
+  
+  
+
+<script>
+    const lastSeen = "{{ request.session.last_seen|default:'' }}";
+    console.log("Raw lastSeen from session:", lastSeen);
+
+    function updateLastSeenText(lastSeenTime) {
+        if (!lastSeenTime) {
+            document.getElementById("last-seen-text").textContent = "Login time unavailable.";
+            return;
+        }
+
+        const lastSeen = new Date(lastSeenTime);
+        const now = new Date();
+
+        const diffMs = now - lastSeen;
+        const diffMin = Math.floor(diffMs / 60000);
+        const diffSec = Math.floor((diffMs % 60000) / 1000);
+
+        let text = "";
+        if (diffMin >= 1) {
+            text = `Logged in ${diffMin} minute${diffMin > 1 ? 's' : ''} ago`;
+        } else {
+            text = `Logged in ${diffSec} second${diffSec !== 1 ? 's' : ''} ago`;
+        }
+
+        document.getElementById("last-seen-text").textContent = text;
+    }
+
+    updateLastSeenText(lastSeen);
+    setInterval(() => updateLastSeenText(lastSeen), 10000);
+</script>
+
     {% include 'includes/footer.html' %}
 </body>
 </html>

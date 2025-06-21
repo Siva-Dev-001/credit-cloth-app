@@ -42,41 +42,49 @@
 
                 <form method="POST">
                     {% csrf_token %}
-                  
-                    <div class="form-group">
-                      <label for="purchase">Select Purchase:</label>
+                    <div class="row">
+                    <div class="form-group col-lg-4 mb-3">
+                      <label for="purchase">Select Purchase <span class="text-danger">*</span></label>
                       <select name="purchase" class="form-control" required>
                         {% for purchase in purchases %}
                         <option value="{{ purchase.id }}">
-                          {{ purchase.customer.name }} — ₹{{ purchase.due_amount }} due
+                          {{ purchase.customer.name }} - {{purchase.customer.area}} — ₹{{ purchase.due_amount }} due
                         </option>
                         {% endfor %}
                       </select>
                     </div>
                   
-                    <div class="form-group">
-                      <label for="amount_paid">Amount Paid:</label>
+                    <div class="form-group col-lg-4 mb-3">
+                      <label for="amount_paid">Amount Paid (Rs.) <span class="text-danger">*</span></label>
                       <input type="number" name="amount_paid" step="0.01" class="form-control" placeholder="0.00" required>
                     </div>
 
-                    <div class="form-group mb-3">
-                        <label for="payment_mode" class="form-label">Payment Mode:</label>
-                        <select class="form-control selectric" id="payment_mode" name="payment_mode" required>
-                          <option value="">Select</option>
+                    <div class="form-group col-lg-4 mb-3">
+                        <label for="payment_mode" class="form-label">Payment Mode <span class="text-danger">*</span></label>
+                        <select class="form-control selectric" id="payment_mode" name="payment_mode" onchange="toggleRefField()" required>
+                          <option value="">-- Choose --</option>
                           <option value="Cash">Cash</option>
-                          <option value="Google pay">Google Pay</option>
-                          <option value="Phonepe">Phonepe</option>
+                          <option value="Google Pay">Google Pay</option>
+                          <option value="PhonePe">PhonePe</option>
                           <option value="Paytm">Paytm</option>
                           <option value="Amazon Pay">Amazon Pay</option>
+                          <option value="UPI">UPI</option>
+                          <option value="Bank Transfer">Bank Transfer</option>
+                          <option value="Discount">Discount</option>
+                          
                         </select>
                     </div>
-                  
+                    
+                    <div class="form-group col-lg-4 mb-3" id="ref-set" style="display: none;">
+                      <label for="reference_id" class="form-label">Payment Reference ID </label>
+                      <input type="text" class="form-control" id="reference_id" name="reference_id" disabled>
+                    </div>
                     <!-- <div class="form-group">
                       <label for="payment_date">Payment Date:</label>
                       <input type="date" name="payment_date" class="form-control" value="{{ today|date:'Y-m-d' }}">
                     </div> -->
-                  
-                    <button type="submit" class="btn btn-success">Submit Payment</button>
+                    </div>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-upload mr-2"></i>Submit Payment</button>
                   </form>
             </div>
         </div>
@@ -92,5 +100,25 @@ $(document).ready(function () {
       $('.alert').fadeOut(); // Hides the alert smoothly
   }, 10000); // 10 Seconds
 });
+</script>
+<script>
+  function toggleRefField() {
+    const paymentMethod = document.getElementById('payment_mode').value;
+    const refField = document.getElementById('reference_id');
+    const refSet = document.getElementById('ref-set');
+    // Methods that require Reference ID
+    const digitalPayments = ['Google Pay', 'PhonePe', 'Paytm', 'Amazon Pay', 'UPI', 'Bank Transfer'];
+
+    if (digitalPayments.includes(paymentMethod)) {
+      refSet.style.display = 'block';
+      refField.disabled = false;
+      refField.placeholder = "Enter Reference ID or Transaction No.";
+    } else {
+      refSet.style.display = 'none';
+      refField.value = '';
+      refField.disabled = true;
+      refField.placeholder = "";
+    }
+  }
 </script>
 {% endblock %}
