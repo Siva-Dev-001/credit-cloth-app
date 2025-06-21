@@ -29,30 +29,51 @@
                 <div class="card-body">
             <form method="post">
                 {% csrf_token %}
+
+                <div class="mb-3">
+                    <label for="name" class="form-label">Full Name <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="name" name="name" value="{{ customer.name }}" required>
+                </div>
                 
                 <div class="mb-3">
-                    <label for="phone" class="form-label">Phone</label>
+                    <label for="phone" class="form-label">Phone <span class="text-danger">*</span></label>
                     <input type="text" class="form-control bg-whitesmoke" id="phone" name="phone" value="{{ customer.phone }}" readonly>
                 </div>
         
                 <div class="mb-3">
-                    <label for="address_line1" class="form-label">Address Line 1</label>
-                    <input type="text" class="form-control" id="address_line1" name="address_line1" value="{{ customer.address_line1 }}">
+                    <label for="address_line1" class="form-label">Address Line 1 <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="address_line1" name="address_line1" value="{{ customer.address_line1 }}" required>
                 </div>
         
                 <div class="mb-3">
                     <label for="address_line2" class="form-label">Address Line 2</label>
                     <input type="text" class="form-control" id="address_line2" name="address_line2" value="{{ customer.address_line2 }}">
                 </div>
-        
-                <div class="mb-3">
-                    <label for="city" class="form-label">City</label>
-                    <input type="text" class="form-control" id="city" name="city" value="{{ customer.city }}">
+
+                <div class=" mb-3">
+                  <label for="area">Area <span class="text-danger">*</span></label>
+                  <select class="form-control selectric" id="area" name="area" required>
+                    <option value="{{ customer.area }}">{{ customer.area }}</option>
+                    <option value="Pallikuppam">Pallikuppam</option>
+                    <option value="Mettu Street">Mettu Street</option>
+                    <option value="Cooperative Nagar">Cooperative Nagar</option>
+                    <option value="Sai Avenue">Sai Avenue</option>
+                    <option value="Madhiravedu">Madhiravedu</option>
+                    <option value="Madhiravedu Othavadai">Madhiravedu Othavadai</option>
+                    <option value="Shanmuga Nagar">Shanmuga Nagar</option>
+                    <option value="Kavery Nagar">Kavery Nagar</option>
+                    <option value="Velappan Nagar">Velappan Nagar</option>
+                  </select>
                 </div>
         
                 <div class="mb-3">
-                    <label for="pin" class="form-label">PIN</label>
-                    <input type="text" class="form-control" id="pin" name="pin" value="{{ customer.pin }}">
+                    <label for="city" class="form-label">City <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="city" name="city" value="{{ customer.city }}" required>
+                </div>
+        
+                <div class="mb-3">
+                    <label for="pin" class="form-label">PIN <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="pin" name="pin" value="{{ customer.pin }}" required>
                 </div>
         
                 <!-- <div class="mb-3">
@@ -67,9 +88,9 @@
         
                 <div class="mb-3">
                     <label for="payment_frequency" class="form-label">Payment Frequency</label>
-                    <select class="form-control selectric" name="payment_frequency" id="payment_frequency">
-                        <option value="weekly" {% if customer.payment_frequency == 'weekly' %}selected{% endif %}>Weekly</option>
-                        <option value="monthly" {% if customer.payment_frequency == 'monthly' %}selected{% endif %}>Monthly</option>
+                    <select class="form-control selectric" name="payment_frequency" id="payment_frequency" required>
+                        <option value="Weekly" {% if customer.payment_frequency == 'Weekly' %}selected{% endif %}>Weekly</option>
+                        <option value="Monthly" {% if customer.payment_frequency == 'Monthly' %}selected{% endif %}>Monthly</option>
                     </select>
                 </div>
         
