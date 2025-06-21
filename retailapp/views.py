@@ -40,7 +40,7 @@ def logout_view(request):
     return redirect('login')
 
 # Dashboard view
-# @login_required(login_url='login')
+@login_required
 def dashboard(request):
     print("I'm in dashboard")
     customers_count = Customer.objects.count()
