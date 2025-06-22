@@ -84,6 +84,7 @@
           <input type="submit" value="{% trans 'Change Language' %}" class="btn btn-sm btn-light">
         </form>
           </li>
+          {% comment %}
           <li class="dropdown dropdown-list-toggle"><a href="#" data-toggle="dropdown" class="nav-link nav-link-lg message-toggle beep"><i class="far fa-envelope"></i></a>
             <div class="dropdown-menu dropdown-list dropdown-menu-right">
               <div class="dropdown-header">Messages
@@ -209,9 +210,10 @@
               </div>
             </div>
           </li>
+          {% endcomment %}
           <li class="dropdown"><a href="#" data-toggle="dropdown" class="nav-link dropdown-toggle nav-link-lg nav-link-user">
-            <img alt="image" src="/static/assets/img/avatar/avatar-1.png" class="rounded-circle mr-1">
-            <div class="d-sm-none d-lg-inline-block">Hi, {{request.session.username}}</div></a>
+            <img alt="image" src="/static/assets/img/user/avatar-1.jpg" class="rounded-circle mr-1">
+            <div class="d-sm-none d-lg-inline-block text-capitalize mr-2 ml-2">{{request.session.username}}</div></a>
             <div class="dropdown-menu dropdown-menu-right">
               <div class="dropdown-title" id="last-seen-text">Loading...</div>
               <a href="" class="dropdown-item has-icon">

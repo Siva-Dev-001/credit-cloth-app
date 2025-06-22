@@ -178,10 +178,8 @@ def customer_edit(request, pk):
 
 def customer_delete(request, pk):
     customer = get_object_or_404(Customer, pk=pk)
-    # if request.method == 'POST':
     customer.delete()
-    return redirect('add_customer')
-    # return render(request, 'pages/customer_delete.html', {'customer': customer})
+    return redirect('list_customers')
 
 # Dress purchase view
 # @login_required

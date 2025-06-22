@@ -44,7 +44,9 @@
         </div>
 
         <div class="card" id="addc">
-          <div class="card-header"><h4>New Customer Registration</h4></div>
+          <div class="card-header"><h4>New Customer Registration</h4>
+          <div class="card-header-action"><a href="{% url 'dashboard' %}" class="btn btn-sm btn-info"><i class="ion-arrow-left-c mr-2"></i> Back to Dashboard</a></div>
+          </div>
           <div class="card-body">
                 {% if messages %}
                 {% for msg in messages %}
