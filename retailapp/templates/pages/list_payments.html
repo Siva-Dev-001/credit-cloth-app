@@ -1,0 +1,148 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block title %} List Payments {% endblock title %}
+
+{% block page_css %}
+<style></style>
+{% endblock %}
+
+{% block content %}
+<!-- Main Content -->
+<div class="main-content">
+    <section class="section">
+        <div class="section-header">
+            <h1>Payments</h1>
+            <div class="section-header-breadcrumb">
+              <div class="breadcrumb-item active"><a href="/">Dashboard</a></div>
+              <!-- <div class="breadcrumb-item"><a href="#">Bootstrap Components</a></div> -->
+              <div class="breadcrumb-item">List Payments</div>
+            </div>
+        </div>
+         
+        
+        <div class="row">
+            <div class="col-md-12">
+              <div class="card">
+                <div class="card-header">
+                  <h4>List of all Payments</h4>
+                  <div class="card-header-action">
+                    <a href="{% url 'dashboard' %}" class="btn btn-sm btn-info"><i class="ion-arrow-left-c mr-2"></i> Back to Dashboard</a>
+                  </div>
+                </div>
+                <div class="card-body p-0">
+                  <div class="table-responsive table-invoice">
+                    <table class="table table-striped">
+                      <tr>
+                        <th>S.No</th>
+                        <th>Customer</th>
+                        <th>Amount Paid</th>
+                        <th>Payment Date</th>
+                        <th>Purchase ID</th>
+                      </tr>
+                      {% for payment in page_obj %}
+                        <tr>
+                          <td>{{page_obj.start_index|add:forloop.counter0}}</td>
+                          <td>{{ payment.purchase.customer.name }}</td>
+                          <td>₹ {{ payment.amount_paid }}</td>
+                          <td>{{ payment.payment_date|date:"Y-m-d" }}</td>
+                          <td>#{{ payment.purchase.id }}</td>
+                        </tr>
+                        {% endfor %}
+                      <!-- <tr>
+                        <td><a href="#">INV-87239</a></td>
+                        <td class="font-weight-600">Kusnadi</td>
+                        <td><div class="badge badge-warning">Unpaid</div></td>
+                        <td>July 19, 2018</td>
+                        <td>
+                          <a href="#" class="btn btn-primary">Detail</a>
+                        </td>
+                      </tr> -->
+                     
+                    </table>
+                    <div class="row">
+                    <div class="col-lg-6 col-md-6 mb-3">
+                        <div class="dataTables_info justify-content-center ml-3" id="DataTables_Table_0_info" role="status" aria-live="polite">Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{page_obj.paginator.count}} entries</div>
+                    </div>
+                    <div class="col-lg-6 col-md-6 mb-3">
+                    <nav aria-label="Payment list pagination">
+                      <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                        <!-- <li class="page-item ">
+                        <a class="page-link" href="?page=1" tabindex="-1">
+                            <i class="bx bx-chevrons-left"></i>
+                            <span class="">First</span>
+                        </a>
+                        </li> -->
+                        <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                        </li>
+                        
+                        {% endif %}
+                        <!-- Previous 2 Pages -->
+                        {% for page_num in page_obj.paginator.page_range %}
+                            {% if page_num >= page_obj.number|add:"-2" and page_num < page_obj.number %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_num }}">{{ page_num }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        <!-- Current Page -->
+                        <li class="page-item active">
+                        <a class="page-link" href="#">{{ page_obj.number }} <span class="sr-only">current</span></a>
+                        </li>
+
+                        <!-- Next 2 Pages -->
+                        {% for page_num in page_obj.paginator.page_range %}
+                            {% if page_num > page_obj.number and page_num <= page_obj.number|add:"2" %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_num }}">{{ page_num }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                        
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
+                        <!-- <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">
+                            <span class="">Last</span>
+                            <i class="bx bx-chevrons-right"></i>
+                            
+                        </a>
+                        </li> -->
+                        {% endif %}
+                        <!-- <li class="paginate_button page-item previous disabled" id="DataTables_Table_0_previous"><a aria-controls="DataTables_Table_0" aria-disabled="true" role="link" data-dt-idx="previous" tabindex="-1" class="page-link">Previous</a></li><li class="paginate_button page-item active"><a href="#" aria-controls="DataTables_Table_0" role="link" aria-current="page" data-dt-idx="0" tabindex="0" class="page-link">1</a></li><li class="paginate_button page-item next disabled" id="DataTables_Table_0_next"><a aria-controls="DataTables_Table_0" aria-disabled="true" role="link" data-dt-idx="next" tabindex="-1" class="page-link">Next</a></li> -->
+                    </ul>
+                    </nav>
+                    </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+        </div>
+
+        
+
+        
+    </section>
+</div>
+{% endblock %}
+
+{% block page_js %} 
+<!-- <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script> -->
+
+<script>
+
+</script>
+<script>
+  $(document).ready(function () {
+ 
+ setTimeout(function() {
+     $('.alert').fadeOut(); // Hides the alert smoothly
+ }, 10000); // 10 Seconds
+});
+</script>
+{% endblock %}

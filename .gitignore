@@ -2,3 +2,5 @@
 *.pyc
 /env
 django-debug.log
+*.log
+*.log
