@@ -240,7 +240,7 @@ def record_payment(request):
 
 # @login_required
 def payment_history(request):
-    purchases = DressPurchase.objects.select_related('customer').prefetch_related('payment_set')
+    purchases = DressPurchase.objects.select_related('customer').prefetch_related('payment_set').prefetch_related('items')
 
     context = {
         'purchases': purchases, 'segment': 'payment_history',
