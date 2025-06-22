@@ -25,37 +25,37 @@
                 <div class="card-header">
                     <h4>Customer Details</h4>
                     <div class="card-header-action"><a href="{% url 'add_customer' %}" class="btn btn-sm btn-info"><i class="ion-arrow-left-c mr-2"></i> Back to Customers List</a></div>
-                    </div> 
+                </div> 
                 <div class="card-body">
                     <div class="row mt-4">
                     <div class="mb-3 col-lg-6">
                         <label for="name" class="form-label">Name</label>
-                        <input type="text" class="form-control" id="name" name="name" value="{{ customer.name }}" readonly>
+                        <input type="text" class="form-control bg-white" id="name" name="name" value="{{ customer.name }}" readonly>
                     </div>
                         
                         <div class="mb-3 col-lg-6">
                             <label for="phone" class="form-label">Phone</label>
-                            <input type="text" class="form-control" id="phone" name="phone" value="{{ customer.phone }}" readonly>
+                            <input type="text" class="form-control bg-white" id="phone" name="phone" value="{{ customer.phone }}" readonly>
                         </div>
                 
                         <div class="mb-3 col-12">
                             <label for="address_line1" class="form-label">Address Line 1</label>
-                            <input type="text" class="form-control" id="address_line1" name="address_line1" value="{{ customer.address_line1 }}" readonly>
+                            <input type="text" class="form-control bg-white" id="address_line1" name="address_line1" value="{{ customer.address_line1 }}" readonly>
                         </div>
                 
                         <div class="mb-3 col-12">
                             <label for="address_line2" class="form-label">Address Line 2</label>
-                            <input type="text" class="form-control" id="address_line2" name="address_line2" value="{{ customer.address_line2 }}" readonly>
+                            <input type="text" class="form-control bg-white" id="address_line2" name="address_line2" value="{{ customer.address_line2 }}" readonly>
                         </div>
                 
                         <div class="mb-3 col-6">
                             <label for="city" class="form-label">City</label>
-                            <input type="text" class="form-control" id="city" name="city" value="{{ customer.city }}" readonly>
+                            <input type="text" class="form-control bg-white" id="city" name="city" value="{{ customer.city }}" readonly>
                         </div>
                 
                         <div class="mb-3 col-6">
                             <label for="pin" class="form-label">PIN</label>
-                            <input type="text" class="form-control" id="pin" name="pin" value="{{ customer.pin }}" readonly>
+                            <input type="text" class="form-control bg-white" id="pin" name="pin" value="{{ customer.pin }}" readonly>
                         </div>
                 
                         <!-- <div class="mb-3">
@@ -70,10 +70,8 @@
                 
                         <div class="mb-3 col-6">
                             <label for="payment_frequency" class="form-label">Payment Frequency</label>
-                            <select class="form-control selectric" name="payment_frequency" id="payment_frequency" aria-readonly="true" >
-                                <option value="weekly" {% if customer.payment_frequency == 'weekly' %}selected{% endif %}>Weekly</option>
-                                <option value="monthly" {% if customer.payment_frequency == 'monthly' %}selected{% endif %}>Monthly</option>
-                            </select>
+                            <input type="text" class="form-control bg-white" name="payment_frequency" id="payment_frequency" value="{{ customer.payment_frequency }}" readonly>
+                            
                         </div>
                     </div>
                 </div>

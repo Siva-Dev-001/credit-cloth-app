@@ -45,7 +45,7 @@
             </div> -->
             <div class="form-group col-lg-4 mb-3">
               <label for="downpayment" class="form-label">Initial Amount (Rs.) <span class="text-danger">*</span></label>
-              <input type="number" class="form-control" id="downpayment" name="downpayment" placeholder="0.00" step="0.01" required>
+              <input type="number" class="form-control" id="downpayment" name="downpayment" min="0" placeholder="0.00" step="0.01" required>
             </div>
             <div class="form-group col-lg-4 mb-3">
               <label for="payment_mode" class="form-label">Payment Mode <span class="text-danger">*</span></label>
@@ -83,8 +83,8 @@
                     <tr>
                         <td class="sno">1</td>
                         <td><input type="text" name="item_name[]" class="form-control" required></td>
-                        <td><input type="number" name="quantity[]" class="form-control qty" required></td>
-                        <td><input type="number" name="unit_price[]" class="form-control price" step="0.01" required></td>
+                        <td><input type="number" name="quantity[]" class="form-control qty" min="1" step="1" required></td>
+                        <td><input type="number" name="unit_price[]" class="form-control price" min="1" step="0.01" required></td>
                         <td><button type="button" class="btn border-0 text-danger bg-white remove-item"><i class="fas fa-trash mr-2"></i>Remove</button></td>
                     </tr>
                 </tbody>
@@ -134,8 +134,8 @@
             <tr>
                 <td class="sno">${rowIdx}</td>
                 <td><input type="text" name="item_name[]" class="form-control" required></td>
-                <td><input type="number" name="quantity[]" class="form-control qty" required></td>
-                <td><input type="number" name="unit_price[]" class="form-control price" step="0.01" required></td>
+                <td><input type="number" name="quantity[]" class="form-control qty" min="1" step="1" required></td>
+                <td><input type="number" name="unit_price[]" class="form-control price" min="1" step="0.01" required></td>
                 <td><button type="button" class="btn border-0 text-danger bg-white remove-item"><i class="fas fa-trash mr-2"></i>Remove</button></td>
             </tr>
         `);
