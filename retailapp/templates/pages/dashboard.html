@@ -106,7 +106,7 @@
                 <div class="card-header">
                   <h4>Customer Pending Dues</h4>
                   <div class="card-header-action">
-                    <a href="#" class="btn btn-danger">View More <i class="fas fa-chevron-right"></i></a>
+                    <a href="{% url 'list_pending_dues' %}" class="btn btn-danger">View More <i class="fas fa-chevron-right"></i></a>
                   </div>
                 </div>
                 <div class="card-body p-0">
@@ -168,16 +168,16 @@
               <div class="card card-hero">
                 <div class="card-header">
                   <div class="card-icon">
-                    <i class="far fa-question-circle"></i>
+                    <i class="fas fa-coins"></i>
                   </div>
-                  <h4>Cash/ UPI</h4>
+                  <h5>Cash/ UPI</h5>
                   <div class="card-description">Payment Entry of all purchases</div>
                 </div>
                 <div class="card-body p-0">
                   <div class="tickets-list">
                     <a href="{% url 'record_payment' %}" class="ticket-item">
                       <div class="ticket-title">
-                        <h4>Start Payment Entry</h4>
+                        <h4>New Payment Entry <i class="fas fa-arrow-right"></i></h4>
                       </div>
                       <!-- <div class="ticket-info">
                         <div>Laila Tazkiah</div>
@@ -185,16 +185,18 @@
                         <div class="text-primary">1 min ago</div>
                       </div> -->
                     </a>
-                    <!-- <a href="#" class="ticket-item">
+                    <hr>
+                    <a href="{% url 'payment_history' %}" class="ticket-item">
                       <div class="ticket-title">
-                        <h4>Please cancel my order</h4>
+                        <h4>View Payment History <i class="fas fa-arrow-right"></i></h4>
                       </div>
-                      <div class="ticket-info">
+                      <!-- <div class="ticket-info">
                         <div>Rizal Fakhri</div>
                         <div class="bullet"></div>
                         <div>2 hours ago</div>
-                      </div>
+                      </div> -->
                     </a>
+                    <!--
                     <a href="#" class="ticket-item">
                       <div class="ticket-title">
                         <h4>Do you see my mother?</h4>
@@ -205,9 +207,9 @@
                         <div>6 hours ago</div>
                       </div>
                     </a> -->
-                    <a href="{% url 'payment_history' %}" class="ticket-item ticket-more">
+                    <!-- <a href="{% url 'payment_history' %}" class="ticket-item ticket-more">
                       View All Payments<i class="fas fa-chevron-right"></i>
-                    </a>
+                    </a> -->
                   </div>
                 </div>
               </div>
@@ -472,7 +474,7 @@
                 <div class="card-header">
                   <h4>All Payments</h4>
                   <div class="card-header-action">
-                    <a href="#" class="btn btn-danger">View More <i class="fas fa-chevron-right"></i></a>
+                    <a href="{% url 'list_payments' %}" class="btn btn-danger">View More <i class="fas fa-chevron-right"></i></a>
                   </div>
                 </div>
                 <div class="card-body p-0">
@@ -494,53 +496,10 @@
                           <td>#{{ payment.purchase.id }}</td>
                         </tr>
                         {% endfor %}
-                      <!-- <tr>
-                        <td><a href="#">INV-87239</a></td>
-                        <td class="font-weight-600">Kusnadi</td>
-                        <td><div class="badge badge-warning">Unpaid</div></td>
-                        <td>July 19, 2018</td>
-                        <td>
-                          <a href="#" class="btn btn-primary">Detail</a>
-                        </td>
-                      </tr> -->
-                      <!-- <tr>
-                        <td><a href="#">INV-48574</a></td>
-                        <td class="font-weight-600">Hasan Basri</td>
-                        <td><div class="badge badge-success">Paid</div></td>
-                        <td>July 21, 2018</td>
-                        <td>
-                          <a href="#" class="btn btn-primary">Detail</a>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td><a href="#">INV-76824</a></td>
-                        <td class="font-weight-600">Muhamad Nuruzzaki</td>
-                        <td><div class="badge badge-warning">Unpaid</div></td>
-                        <td>July 22, 2018</td>
-                        <td>
-                          <a href="#" class="btn btn-primary">Detail</a>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td><a href="#">INV-84990</a></td>
-                        <td class="font-weight-600">Agung Ardiansyah</td>
-                        <td><div class="badge badge-warning">Unpaid</div></td>
-                        <td>July 22, 2018</td>
-                        <td>
-                          <a href="#" class="btn btn-primary">Detail</a>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td><a href="#">INV-87320</a></td>
-                        <td class="font-weight-600">Ardian Rahardiansyah</td>
-                        <td><div class="badge badge-success">Paid</div></td>
-                        <td>July 28, 2018</td>
-                        <td>
-                          <a href="#" class="btn btn-primary">Detail</a>
-                        </td>
-                      </tr> -->
+                     
+                      
                     </table>
-
+                    {% comment %}
                     <nav aria-label="Payment list pagination">
                       <ul class="pagination justify-content-center">
                         {% if page_obj.has_previous %}
@@ -562,7 +521,7 @@
                         {% endif %}
                       </ul>
                     </nav>
-
+                    {% endcomment %}
                   </div>
                 </div>
               </div>
@@ -628,6 +587,7 @@
         <button type="button" class="close custom-close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
       </div>
       <div class="modal-body">
+        <div class="table-responsive">
         <table class="table table-striped" id="purchase-detail-table">
           <thead>
             <tr>
@@ -643,6 +603,7 @@
             <!-- Rows will be populated via JS -->
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   </div>
@@ -657,6 +618,7 @@
         <button type="button" class="close custom-close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
       </div>
       <div class="modal-body">
+        <div class="table-responsive">
         <table class="table table-striped" id="payment-detail-table">
           <thead>
             <tr>
@@ -670,6 +632,7 @@
             <!-- Data will be injected here -->
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   </div>

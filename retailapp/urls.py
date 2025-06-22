@@ -23,4 +23,6 @@ urlpatterns = [
     path('customers/<int:customer_id>/purchases/', views.customer_purchases_json, name='customer_purchases_json'),
     path('create-exchange/<int:item_id>/', views.create_exchange_request, name='create_exchange_request'),
     path('review-exchange/<int:exchange_id>/', views.admin_review_exchange, name='admin_review_exchange'),
+    path('list-payments/', views.list_payments, name='list_payments'),
+    path('list_pending_dues/', views.list_pending_dues, name='list_pending_dues'),
 ]
