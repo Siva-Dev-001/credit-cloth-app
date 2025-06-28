@@ -186,7 +186,7 @@
                       </div> -->
                     </a>
                     <hr>
-                    <a href="{% url 'payment_history' %}" class="ticket-item">
+                    <a href="{% url 'list_payments' %}" class="ticket-item">
                       <div class="ticket-title">
                         <h4>View Payment History <i class="fas fa-arrow-right"></i></h4>
                       </div>
@@ -731,7 +731,7 @@
  
  setTimeout(function() {
      $('.alert').fadeOut(); // Hides the alert smoothly
- }, 10000); // 10 Seconds
+ }, 3000); // 3 Seconds
 });
 </script>
 {% endblock %}

@@ -19,6 +19,7 @@
         <!-- <li class="{% if segment == 'add_customer' %} active {% endif %}"><a class="nav-link" href="{% url 'add_customer' %}"><i class="fas fa-user"></i> <span>Customer</span></a></li> -->
         <li class="{% if segment == 'product_purchase' %} active {% endif %}"><a class="nav-link" href="{% url 'purchase_product' %}"><i class="fas fa-pencil-ruler"></i> <span>Add Purchased Items</span></a></li>
         <li class="{% if segment == 'record_payment' %} active {% endif %}"><a class="nav-link" href="{% url 'record_payment' %}"><i class="fas fa-dollar-sign"></i> <span>Payment Entry</span></a></li>
+        <li class="{% if segment == 'manage_orders' %} active {% endif %}"><a class="nav-link" href="{% url 'payment_history' %}"><i class="fas fa-shopping-bag"></i> <span>Manage Orders</span></a></li>
         <li class="{% if segment == 'inventory' %} active {% endif %}"><a class="nav-link" href="{% url 'inventory_list' %}"><i class="fas fa-archive"></i> <span>Inventory</span></a></li>
         
         {% comment %}
