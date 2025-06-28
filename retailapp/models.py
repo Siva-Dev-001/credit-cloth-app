@@ -28,7 +28,8 @@ class DressPurchase(models.Model):
     # quantity = models.PositiveIntegerField()
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     downpayment = models.DecimalField(max_digits=10, decimal_places=2)
-    purchase_date = models.DateTimeField(auto_now_add=True)
+    purchase_date = models.DateTimeField(null=True)
+    auto_purchase_date = models.DateTimeField(auto_now_add=True, null=True)
 
     @property
     def paid_amount(self):
@@ -45,9 +46,10 @@ class Payment(models.Model):
     purchase = models.ForeignKey('DressPurchase', on_delete=models.CASCADE)
     amount_paid = models.DecimalField(max_digits=10, decimal_places=2)
     payment_type = models.CharField(max_length=100, null=True, blank=True)
-    payment_date = models.DateField(auto_now_add=True)
+    payment_date = models.DateField(null=True)
     reference_id = models.CharField(max_length=100, null=True, blank=True)
-    payment_date_time = models.DateTimeField(auto_now_add=True, null=True)
+    payment_date_time = models.DateTimeField(null=True)
+    auto_payment_date_time = models.DateTimeField(auto_now_add=True, null=True)
     collected_by = models.CharField(max_length=100, null=True, blank=True)
 
     def __str__(self):
