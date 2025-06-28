@@ -4,6 +4,9 @@
 {% block title %} Product Purchase {% endblock title %}
 
 {% block page_css %}
+<!-- jQuery and jQuery UI CDN -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css">
+<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.14.1/themes/ui-lightness/jquery-ui.css">
 <style></style>
 {% endblock %}
 
@@ -31,6 +34,10 @@
                 {% endfor %}
               </select>
             </div>
+             <div class="form-group col-lg-4 col-md-4 mb-3">
+                <label for="purchase_date" class="form-label">Purchase Date<span class="f-14 text-danger">*</span></label>
+                <input type="text" class="form-control fdate bg-white" id="purchase_date" name="purchase_date" required readonly>
+            </div>
             <!-- <div class="form-group mb-3">
               <label for="item_name" class="form-label">Item Name</label>
               <input type="text" class="form-control" id="item_name" name="item_name" required>
@@ -51,6 +58,7 @@
               <label for="payment_mode" class="form-label">Payment Mode <span class="text-danger">*</span></label>
               <select class="form-control selectric" id="payment_mode" name="payment_mode" onchange="toggleRefField()" required>
                 <option value="">-- Choose --</option>
+                <option value="No Cash">No Cash</option>
                 <option value="Cash">Cash</option>
                 <option value="Google Pay">Google Pay</option>
                 <option value="PhonePe">PhonePe</option>
@@ -65,6 +73,10 @@
             <div class="form-group col-lg-4 mb-3" id="ref-set" style="display: none;">
               <label for="reference_id" class="form-label">Payment Reference ID </label>
               <input type="text" class="form-control" id="reference_id" name="reference_id" disabled>
+            </div>
+            <div class="form-group col-lg-4 col-md-4 mb-3">
+                <label for="payment_date" class="form-label">Payment Date<span class="f-14 text-danger">*</span></label>
+                <input type="text" class="form-control fdate bg-white" id="payment_date" name="payment_date" required readonly>
             </div>
             </div>
             <h5 class="my-2">Purchase Items</h5><br>
@@ -106,6 +118,8 @@
 
 {% block page_js %} 
 <!-- <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script> -->
+<!-- <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
 <script>
   $(document).ready(function () {
  
@@ -181,5 +195,18 @@
       refField.placeholder = "";
     }
   }
+</script>
+<script>
+   $(document).ready(function () {
+        let today = new Date(); // Get the current date
+        $(".fdate").datepicker({
+            changeYear: true,
+            changeMonth: true,
+            // yearRange: `${minYear}:${maxYear}`,
+            dateFormat: "yy-mm-dd", // Ensure format consistency
+            // minDate: new Date(minYear, 0, 1), // yyyy, mm, dd
+            maxDate: today 
+        });
+   });
 </script>
 {% endblock %}

@@ -43,7 +43,7 @@
                       {% for payment in page_obj %}
                         <tr>
                           <td>{{page_obj.start_index|add:forloop.counter0}}</td>
-                          <td>{{ payment.purchase.customer.name }}</td>
+                          <td>{{ payment.purchase.customer.name }} - {{ payment.purchase.customer.area }}</td>
                           <td>₹ {{ payment.amount_paid }}</td>
                           <td>{{ payment.payment_date|date:"Y-m-d" }}</td>
                           <td>#{{ payment.purchase.id }}</td>

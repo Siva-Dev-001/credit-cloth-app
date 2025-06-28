@@ -7,8 +7,8 @@ from django.utils import timezone
 from django.contrib import messages
 from django.http import JsonResponse, HttpResponse
 from django.db.models import Sum, Count, Min, Max
-from .forms import InventoryItemForm 
-from .models import Customer, DressPurchase, Payment, ReturnOrExchange, PurchaseItem, InventoryItem, ReturnRequest, ExchangeRequest
+from retailapp.forms import InventoryItemForm 
+from retailapp.models import Customer, DressPurchase, Payment, ReturnOrExchange, PurchaseItem, InventoryItem, ReturnRequest, ExchangeRequest
 import boto3
 from django.conf import settings
 from django.utils.timezone import now
@@ -96,6 +96,7 @@ def dashboard(request):
     }
     return render(request, 'pages/dashboard.html', context)
 
+@login_required
 def list_pending_dues(request):
     customers = Customer.objects.all()
     customer_data = []
@@ -126,6 +127,7 @@ def list_pending_dues(request):
     context = {'customers': customers, 'customer_data': customer_data, 'page_obj': page_obj}
     return render(request, 'pages/list_pending_dues.html', context)   
 
+@login_required
 def list_payments(request):
     payments_count = Payment.objects.count()
     payments = Payment.objects.select_related('purchase__customer').order_by('-payment_date')
@@ -149,7 +151,7 @@ def register(request):
     return render(request, 'accounts/auth-register.html')
 
 # Customer registration view
-# @login_required
+@login_required
 def register_customer(request):
     if request.method == 'POST':
         if Customer.objects.filter(phone= request.POST.get('phone')).exists():
@@ -168,6 +170,7 @@ def register_customer(request):
                 # lat=request.POST.get('lat'),
                 # lng=request.POST.get('lng'),
                 payment_frequency=request.POST['payment_frequency']
+
             )
             
             message = f"Hi {request.POST['name']}, welcome to SK Dresses!"
@@ -185,14 +188,17 @@ def register_customer(request):
         return redirect('purchase_product')
     return render(request, 'pages/add_customer.html', {'segment': 'add_customer'})
 
+@login_required
 def list_customers(request):
     customers = Customer.objects.all()
     return render(request, 'pages/list_customers.html', {'customers': customers, 'segment': 'list_customers'})
 
+@login_required
 def customer_detail(request, pk):
     customer = get_object_or_404(Customer, pk=pk)
     return render(request, 'pages/customer_detail.html', {'customer': customer})
 
+@login_required
 def customer_edit(request, pk):
     customer = get_object_or_404(Customer, pk=pk)
     if request.method == 'POST':
@@ -216,13 +222,14 @@ def customer_edit(request, pk):
     #     form = CustomerForm(instance=customer)
     return render(request, 'pages/customer_edit.html', {'customer': customer})
 
+@login_required
 def customer_delete(request, pk):
     customer = get_object_or_404(Customer, pk=pk)
     customer.delete()
     return redirect('list_customers')
 
 # Dress purchase view
-# @login_required
+@login_required
 def purchase_product(request):
     customers = Customer.objects.all()
     if request.method == 'POST':
@@ -231,10 +238,13 @@ def purchase_product(request):
         downpayment = float(request.POST.get('downpayment', 0))
         payment_type=request.POST['payment_mode']
         reference_id = request.POST.get('reference_id')
+        purchase_date = request.POST.get('purchase_date', None)
+        payment_date = request.POST.get('payment_date', None)
         # Add Purchased Items
         purchase = DressPurchase.objects.create(
             customer=customer,
             downpayment=downpayment,
+            purchase_date = purchase_date,
             # payment_frequency=request.POST['payment_frequency']
         )
         total_amount = 0
@@ -252,12 +262,12 @@ def purchase_product(request):
         purchase.total_amount = total_amount
         purchase.save()
         # Add Payment Info
-        Payment.objects.create(purchase=purchase, amount_paid=downpayment, payment_type=payment_type, reference_id=reference_id)
+        Payment.objects.create(purchase=purchase, amount_paid=downpayment, payment_type=payment_type, payment_date = payment_date, reference_id=reference_id)
         return redirect('purchase_product')
     return render(request, 'pages/product_purchase.html', {'customers': customers, 'segment': 'product_purchase'})
 
 # Payment entry view
-# @login_required
+@login_required
 def record_payment(request):
     purchases = DressPurchase.objects.select_related('customer').all()
     if request.method == 'POST':
@@ -270,6 +280,7 @@ def record_payment(request):
                 payment_type=request.POST['payment_mode'],
                 collected_by=request.session.get('username',''),
                 reference_id=request.session.get('reference_id',''),
+                payment_date = request.session.get('payment_date', None)
             )
             messages.success(request,'Payment recorded successfully!')
         except Exception as e:
@@ -278,7 +289,7 @@ def record_payment(request):
         return redirect('record_payment')
     return render(request, 'pages/payment_entry.html', {'purchases': purchases, 'segment': 'record_payment'})
 
-# @login_required
+@login_required
 def payment_history(request):
     purchases = DressPurchase.objects.select_related('customer').prefetch_related('payment_set').prefetch_related('items')
 
@@ -288,7 +299,7 @@ def payment_history(request):
     return render(request, 'pages/payment_history.html', context)
 
 # Return or Exchange view
-# @login_required
+@login_required
 def submit_return_exchange(request):
     purchases = DressPurchase.objects.select_related('customer').all()
     if request.method == 'POST':
@@ -301,11 +312,13 @@ def submit_return_exchange(request):
         return redirect('submit_return_exchange')
     return render(request, 'pages/return_exchange.html', {'purchases': purchases})
 
+@login_required
 def inventory_list(request):
     inventory_items = InventoryItem.objects.all().order_by('-updated_at')
     context = {'inventory_items': inventory_items, 'segment': 'inventory',}
     return render(request, 'pages/inventory_list.html', context)
 
+@login_required
 def add_inventory_item(request):
     if request.method == 'POST':
         print(request.POST)
@@ -324,6 +337,7 @@ def add_inventory_item(request):
     context = {'inventory_items': inventory_items, 'segment': 'inventory', 'title': 'Add Inventory Item' }
     return render(request, 'pages/add_edit_inventory.html', context)
 
+@login_required
 def edit_inventory_item(request, item_id):
     item = get_object_or_404(InventoryItem, id=item_id)
 
@@ -344,6 +358,7 @@ def edit_inventory_item(request, item_id):
     context = {'inventory_items': inventory_items, 'segment': 'inventory','title': 'Edit Inventory Item' , 'item': item}
     return render(request, 'pages/add_edit_inventory.html', context)
 
+@login_required
 def delete_inventory_item(request, item_id):
     item = get_object_or_404(InventoryItem, id=item_id)
 
@@ -354,6 +369,7 @@ def delete_inventory_item(request, item_id):
 
     messages.warning(request, "Invalid request method.")
     return redirect('inventory_list')
+
 
 def customer_payments_json(request, customer_id):
     payments = Payment.objects.filter(purchase__customer_id=customer_id).order_by('-payment_date_time')
