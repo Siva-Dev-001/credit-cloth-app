@@ -262,7 +262,7 @@ def purchase_product(request):
         purchase.total_amount = total_amount
         purchase.save()
         # Add Payment Info
-        Payment.objects.create(purchase=purchase, amount_paid=downpayment, payment_type=payment_type, payment_date = payment_date, reference_id=reference_id)
+        Payment.objects.create(purchase=purchase, amount_paid=downpayment, payment_type=payment_type, payment_date = payment_date, payment_date_time = payment_date, reference_id=reference_id)
         return redirect('purchase_product')
     return render(request, 'pages/product_purchase.html', {'customers': customers, 'segment': 'product_purchase'})
 
@@ -280,7 +280,8 @@ def record_payment(request):
                 payment_type=request.POST['payment_mode'],
                 collected_by=request.session.get('username',''),
                 reference_id=request.session.get('reference_id',''),
-                payment_date = request.session.get('payment_date', None)
+                payment_date = request.POST.get('payment_date', None),
+                payment_date_time = request.POST.get('payment_date', None)
             )
             messages.success(request,'Payment recorded successfully!')
         except Exception as e:
@@ -294,7 +295,7 @@ def payment_history(request):
     purchases = DressPurchase.objects.select_related('customer').prefetch_related('payment_set').prefetch_related('items')
 
     context = {
-        'purchases': purchases, 'segment': 'payment_history',
+        'purchases': purchases, 'segment': 'manage_orders',
     }
     return render(request, 'pages/payment_history.html', context)
 
