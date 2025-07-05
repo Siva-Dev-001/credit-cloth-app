@@ -12,6 +12,9 @@ from retailapp.models import Customer, DressPurchase, Payment, ReturnOrExchange,
 import boto3
 from django.conf import settings
 from django.utils.timezone import now
+from collections import OrderedDict
+from urllib.parse import quote_plus
+from collections import defaultdict
 
 def get_sns_client():
     return boto3.client(
@@ -173,16 +176,16 @@ def register_customer(request):
 
             )
             
-            message = f"Hi {request.POST['name']}, welcome to SK Dresses!"
-            try:
-                client = get_sns_client()
-                response = client.publish(
-                    PhoneNumber = request.POST['phone'],
-                    Message=message
-                )
-                print("SNS Response:", response)
-            except Exception as e:
-                print("SNS Error:", e)
+            # message = f"Hi {request.POST['name']}, welcome to SK Dresses!"
+            # try:
+            #     client = get_sns_client()
+            #     response = client.publish(
+            #         PhoneNumber = request.POST['phone'],
+            #         Message=message
+            #     )
+            #     print("SNS Response:", response)
+            # except Exception as e:
+            #     print("SNS Error:", e)
             # msg call
             messages.success(request,'New Customer added successfully!')
         return redirect('purchase_product')
@@ -270,6 +273,7 @@ def purchase_product(request):
 @login_required
 def record_payment(request):
     purchases = DressPurchase.objects.select_related('customer').all()
+
     if request.method == 'POST':
         print(request.POST)
         try:
@@ -288,14 +292,92 @@ def record_payment(request):
             print(e)
             messages.error(request,'Payment entry is failed! Try again.')
         return redirect('record_payment')
-    return render(request, 'pages/payment_entry.html', {'purchases': purchases, 'segment': 'record_payment'})
+    # Use a dictionary to store total dues per customer
+    customer_dues = defaultdict(int)
+
+    for purchase in purchases:
+        key = f"{purchase.customer.name} - {purchase.customer.area}"
+        customer_dues[key] += purchase.due_amount or 0
+
+    # Convert to regular dict if needed
+    customer_dues = dict(customer_dues)
+    
+    # Filter out zero dues
+    customer_dues = {k: v for k, v in customer_dues.items() if v > 0}
+    return render(request, 'pages/payment_entry.html', {'purchases': purchases, 'customer_dues': customer_dues, 'segment': 'record_payment'})
 
 @login_required
 def payment_history(request):
-    purchases = DressPurchase.objects.select_related('customer').prefetch_related('payment_set').prefetch_related('items')
+    purchases = DressPurchase.objects.select_related('customer').prefetch_related('payment_set', 'items')
+    # Use OrderedDict to preserve order and avoid potential issues
+    customer_map = OrderedDict()
+
+    for purchase in purchases:
+        customer = purchase.customer
+        cust_id = customer.id
+
+        if cust_id not in customer_map:
+            customer_map[cust_id] = {
+                'customer': customer,
+                'items': [],
+                'payments': [],
+                'total_purchase_amount': 0,
+                'total_paid_amount': 0,
+                'pending_due_amount': 0,
+            }
+
+        # Add purchase totals
+        customer_map[cust_id]['total_purchase_amount'] += purchase.total_amount or 0
+        customer_map[cust_id]['total_paid_amount'] += purchase.paid_amount or 0
+        customer_map[cust_id]['pending_due_amount'] += purchase.due_amount or 0
+
+        # Collect all items, tagging them with their purchase date
+        for item in purchase.items.all():
+            customer_map[cust_id]['items'].append({
+                'item': item,
+                'purchase_date': purchase.purchase_date,
+            })
+
+        # Collect all payments
+        for payment in purchase.payment_set.all():
+            customer_map[cust_id]['payments'].append(payment)
+
+    # Now, generate WhatsApp message for each customer
+    for data in customer_map.values():
+        msg = f"Customer: {data['customer'].name}\nArea: {data['customer'].area}\n"
+        msg += f"\nTotal Purchase: ₹{data['total_purchase_amount']}"
+        msg += f"\nTotal Paid: ₹{data['total_paid_amount']}"
+        msg += f"\nPending Due: ₹{data['pending_due_amount']}"
+
+        msg += "\n\nPurchased Items:"
+        for wrapped in data['items']:
+            item = wrapped['item']
+            date = wrapped['purchase_date'].strftime("%d-%b-%Y")
+            msg += f"\n- {item.item_name} x {item.quantity} (₹{item.subtotal}) on {date}"
+
+        msg += "\n\nPayments:"
+        for payment in data['payments']:
+            date = payment.payment_date.strftime("%d-%b-%Y")
+            msg += f"\n- ₹{payment.amount_paid} on {date}"
+
+        # Add encoded share link
+        data['whatsapp_share_url'] = f"https://wa.me/?text={quote_plus(msg)}"
+
+    # for cust_id, data in customer_map.items():
+    #     print(f"\nCustomer ID: {cust_id}")
+    #     print(f"Customer Name: {data['customer'].name}")
+    #     print("Purchases:")
+    #     for purchase in data['purchases']:
+    #         print(f"  - Purchase ID: {purchase.id}, Date: {purchase.purchase_date}, Total: {purchase.total_amount}")
+    #         print("    Items:")
+    #         for item in purchase.items.all():
+    #             print(f"      • {item.item_name} x {item.quantity}")
+    #         print("    Payments:")
+    #         for payment in purchase.payment_set.all():
+    #             print(f"      ₹{payment.amount_paid} on {payment.payment_date}")
 
     context = {
-        'purchases': purchases, 'segment': 'manage_orders',
+        'purchases': purchases, 'customer_purchases': list(customer_map.values()), 'segment': 'manage_orders',
     }
     return render(request, 'pages/payment_history.html', context)
 

@@ -21,73 +21,95 @@
           </div>
 
           <div class="container">
-            <h2>Track Customer Orders, and Payments</h2>
+            <h2 class="mb-3">Track Customer Orders, and Payments</h2>
 
-            {% for purchase in purchases %}
-            <div class="card my-3">
-                <div class="card-header bg-primary text-white">
-                Customer: {{ purchase.customer.name }} | Area: {{ purchase.customer.area }} | Purchase Date: {{ purchase.purchase_date|date:"d-M-Y" }}
-                </div>
-                <div class="card-body">
-                <p><strong>Total Purchase:</strong> ₹{{ purchase.total_amount }}</p>
-                <p><strong>Total Paid:</strong> ₹{{ purchase.paid_amount }}</p>
-                <p><strong>Due Amount:</strong> ₹{{ purchase.due_amount }}</p>
+            {% for entry in customer_purchases %}
+                <div class="card mb-4 border border-dark">
+                    <div class="card-header bg-dark text-white">
+                        <h4 class="mb-0">
+                            Customer: {{ entry.customer.name }} | Area: {{ entry.customer.area }}
+                        </h4>
+                        <div class="card-header-action">
+                            <a class="btn btn-light" target="_blank" href="{{ entry.whatsapp_share_url }}">
+                                <i class="ion-android-share-alt mr-2"></i> Share on WhatsApp
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <strong>Total Purchase:</strong> ₹{{ entry.total_purchase_amount }} |
+                            <strong>Total Paid:</strong> ₹{{ entry.total_paid_amount }} |
+                            <strong>Pending Due:</strong> ₹{{ entry.pending_due_amount }}
+                        </div>
 
-                {% if purchase.items.all %}
-                <table class="table table-sm table-bordered mt-3">
-                    <thead>
-                        <tr>
-                        <th>#</th>
-                        <th>Item Name</th>
-                        <th>Quantity</th>
-                        <th>Unit Price</th>
-                        <th>Sub Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    {% for item in purchase.items.all %}
-                    <tr>
-                        <td>{{forloop.counter}}</td>
-                        <td>{{item.item_name}}</td>
-                        <td>{{item.quantity}}</td>
-                        <td>{{item.unit_price}}</td>
-                        <td>{{item.subtotal}}</td>
-                    </tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
-                {% else %}
-                    <p class="text-muted">No Items Purchased.</p>
-            
-                {% endif %}
-                
-                {% if purchase.payment_set.all %}
-                    <table class="table table-sm table-bordered mt-3">
-                    <thead>
-                        <tr>
-                        <th>#</th>
-                        <th>Amount Paid</th>
-                        <th>Payment Date</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for payment in purchase.payment_set.all %}
-                        <tr>
-                            <td>{{ forloop.counter }}</td>
-                            <td>₹{{ payment.amount_paid }}</td>
-                            <td>{{ payment.payment_date|date:"d-M-Y" }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                    </table>
-                {% else %}
-                    <p class="text-muted">No payments made yet.</p>
-                {% endif %}
+                        {% if entry.items %}
+                            <h6 class="mt-4">Purchased Items</h6>
+                            <div class="table-responsive">
+                            <table class="table table-sm table-bordered">
+                                <thead class="thead-dark">
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Item Name</th>
+                                        <th>Quantity</th>
+                                        <th>Unit Price</th>
+                                        <th>Sub Total</th>
+                                        <th>Purchase Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for wrapped in entry.items %}
+                                        <tr>
+                                            <td>{{ forloop.counter }}</td>
+                                            <td>{{ wrapped.item.item_name }}</td>
+                                            <td>{{ wrapped.item.quantity }}</td>
+                                            <td>₹{{ wrapped.item.unit_price }}</td>
+                                            <td>₹{{ wrapped.item.subtotal }}</td>
+                                            <td>{{ wrapped.purchase_date|date:"d-M-Y" }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            </div>
+                        {% else %}
+                            <p class="text-muted">No Items Purchased.</p>
+                        {% endif %}
+
+                        {% if entry.payments %}
+                            <h6 class="mt-4">Payments</h6>
+                            <div class="table-responsive">
+                            <table class="table table-sm table-bordered">
+                                <thead class="thead-dark">
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Amount Paid</th>
+                                        <th>Payment Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for payment in entry.payments %}
+                                        <tr>
+                                            <td>{{ forloop.counter }}</td>
+                                            <td>₹{{ payment.amount_paid }}</td>
+                                            <td>{{ payment.payment_date|date:"d-M-Y" }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            </div>
+                        {% else %}
+                            <p class="text-muted">No payments made yet.</p>
+                        {% endif %}
+
+
+                       
+
+                    </div>
                 </div>
-            </div>
             {% empty %}
-            <p>No purchases available.</p>
+                <p>No customers found with purchases.</p>
             {% endfor %}
+
+
 
             
           </div>

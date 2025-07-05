@@ -51,10 +51,11 @@
                     <div class="form-group col-lg-4 mb-3">
                       <label for="purchase">Select Purchase <span class="text-danger">*</span></label>
                       <select name="purchase" class="form-control" required>
-                        {% for purchase in purchases %}
-                        <option value="{{ purchase.id }}">
-                          {{ purchase.customer.name }} - {{purchase.customer.area}} — ₹{{ purchase.due_amount }} due
-                        </option>
+                        <option value="" disabled selected>Select customer with pending dues</option>
+                        {% for key, amount in customer_dues.items %}
+                          <option value="{{ key }}">
+                            {{ key }} — ₹{{ amount }} due
+                          </option>
                         {% endfor %}
                       </select>
                     </div>
