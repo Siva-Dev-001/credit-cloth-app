@@ -12,6 +12,9 @@ from retailapp.models import Customer, DressPurchase, Payment, ReturnOrExchange,
 import boto3
 from django.conf import settings
 from django.utils.timezone import now
+from collections import OrderedDict
+from urllib.parse import quote_plus
+from collections import defaultdict
 
 def get_sns_client():
     return boto3.client(
@@ -127,14 +130,74 @@ def list_pending_dues(request):
     context = {'customers': customers, 'customer_data': customer_data, 'page_obj': page_obj}
     return render(request, 'pages/list_pending_dues.html', context)   
 
+def default_no_payment_message(customer_name):
+    return (
+        f"வணக்கம் {customer_name}, இன்று எந்தக் கட்டணமும் பெறப்படவில்லை. "
+        f"தயவு செய்து நிலுவை தொகையை விரைவில் செலுத்துங்கள். நன்றி – SK Dresses."
+    )
+
+
 @login_required
 def list_payments(request):
     payments_count = Payment.objects.count()
     payments = Payment.objects.select_related('purchase__customer').order_by('-payment_date')
-    paginator = Paginator(payments, 10)  # 10 payments per page
+    payment_data = []
+    red_heart = '' # '\u2764\uFE0F'
+    star = '' #"\U0001F31F"
+    folded_hands = '' #"\U0001F64F"
+    location = '' #"\U0001F4CD"
+    recepit = '' #"\U0001F9FE"
+    ccard = '' #"\U0001F4B3"
+    calendar = '' #"\U0001F4C5"
+    pushupin = '' #"\U0001F4CC"
+    check_mark = '' #"\u2705"
+
+    for payment in payments:
+        customer = payment.purchase.customer
+        purchase = payment.purchase
+        date = payment.payment_date.strftime("%d-%b-%Y")
+        if payment.payment_type not in ["No Cash" ,"Discount"]:
+            msg = f"{star} அன்பார்ந்த வாடிக்கையாளர் {customer.name} அவர்களுக்கு வணக்கம்!\n"
+            # msg += f"🙏 எங்களின் சேவையை நம்பி தொடர்வதற்கு நன்றிகள்!\n"
+            msg += f"\n{folded_hands} நீங்கள் எங்களை தேர்ந்தெடுத்து, நம்பிக்கையுடன் தொடர்வது எங்களுக்கு பெருமை! \n"
+            
+            msg += f"\n{recepit} வாங்கிய பொருட்கள் தொகை: ₹{purchase.total_amount}"
+            msg += f"\n{ccard} இன்று செலுத்தியது: ₹{payment.amount_paid} ({payment.payment_type})"
+            msg += f"\n{calendar} தேதி: {date}"
+            msg += f"\n{pushupin} தற்போது நிலுவையில் உள்ள பணம் ₹{purchase.due_amount}"
+
+            msg += f"\n\n{check_mark} நன்றி! - SK Dresses"
+
+            sms_msg = f"வணக்கம் {customer.name}, \n₹{payment.amount_paid} {payment.payment_type} மூலம் {date} தேதியில் பெற்றோம். நிலுவை பணம் ₹{purchase.due_amount}. நன்றி – SK Dresses."
+        else:
+            msg = default_no_payment_message(customer.name)
+            sms_msg = default_no_payment_message(customer.name)
+
+        share_url = f"https://wa.me/?text={quote_plus(msg)}"
+
+        encoded_msg = quote_plus(sms_msg)
+
+        sms_url = f"sms:{customer.phone}?&body={encoded_msg}"
+        
+        payment_data.append({
+            "customer_name": customer.name,
+            "area": customer.area,
+            "amount_paid": payment.amount_paid,
+            "payment_mode": payment.payment_type,
+            "payment_date": date,
+            "purchase_id": purchase.id,
+            "due_amount": purchase.due_amount,
+            "share_url": share_url,
+            "sms_url": sms_url
+        })
+        # For display, store in a dict or use in template:
+        # print(f"{customer.name}: {share_url}")
+    
+    paginator = Paginator(payment_data, 10)  # 10 payments per page
 
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
+
     context = {'payments_count': payments_count, 'page_obj': page_obj}
     return render(request, 'pages/list_payments.html', context)
 
@@ -173,16 +236,16 @@ def register_customer(request):
 
             )
             
-            message = f"Hi {request.POST['name']}, welcome to SK Dresses!"
-            try:
-                client = get_sns_client()
-                response = client.publish(
-                    PhoneNumber = request.POST['phone'],
-                    Message=message
-                )
-                print("SNS Response:", response)
-            except Exception as e:
-                print("SNS Error:", e)
+            # message = f"Hi {request.POST['name']}, welcome to SK Dresses!"
+            # try:
+            #     client = get_sns_client()
+            #     response = client.publish(
+            #         PhoneNumber = request.POST['phone'],
+            #         Message=message
+            #     )
+            #     print("SNS Response:", response)
+            # except Exception as e:
+            #     print("SNS Error:", e)
             # msg call
             messages.success(request,'New Customer added successfully!')
         return redirect('purchase_product')
@@ -270,6 +333,7 @@ def purchase_product(request):
 @login_required
 def record_payment(request):
     purchases = DressPurchase.objects.select_related('customer').all()
+
     if request.method == 'POST':
         print(request.POST)
         try:
@@ -288,14 +352,97 @@ def record_payment(request):
             print(e)
             messages.error(request,'Payment entry is failed! Try again.')
         return redirect('record_payment')
-    return render(request, 'pages/payment_entry.html', {'purchases': purchases, 'segment': 'record_payment'})
+    # Use a dictionary to store total dues per customer
+    customer_dues = defaultdict(int)
+
+    for purchase in purchases:
+        customer = purchase.customer
+        key = customer.id
+        label = f"{customer.name} - {customer.area}"
+        customer_dues[key] = {
+            'label': label,
+            'amount': customer_dues.get(key, {}).get('amount', 0) + (purchase.due_amount or 0)
+        }
+
+    # Convert to regular dict if needed
+    customer_dues = dict(customer_dues)
+
+    # Filter out zero dues
+    customer_dues = {k: v for k, v in customer_dues.items() if v['amount'] > 0}
+    return render(request, 'pages/payment_entry.html', {'purchases': purchases, 'customer_dues': customer_dues, 'segment': 'record_payment'})
 
 @login_required
 def payment_history(request):
-    purchases = DressPurchase.objects.select_related('customer').prefetch_related('payment_set').prefetch_related('items')
+    purchases = DressPurchase.objects.select_related('customer').prefetch_related('payment_set', 'items')
+    # Use OrderedDict to preserve order and avoid potential issues
+    customer_map = OrderedDict()
+
+    for purchase in purchases:
+        customer = purchase.customer
+        cust_id = customer.id
+
+        if cust_id not in customer_map:
+            customer_map[cust_id] = {
+                'customer': customer,
+                'items': [],
+                'payments': [],
+                'total_purchase_amount': 0,
+                'total_paid_amount': 0,
+                'pending_due_amount': 0,
+            }
+
+        # Add purchase totals
+        customer_map[cust_id]['total_purchase_amount'] += purchase.total_amount or 0
+        customer_map[cust_id]['total_paid_amount'] += purchase.paid_amount or 0
+        customer_map[cust_id]['pending_due_amount'] += purchase.due_amount or 0
+
+        # Collect all items, tagging them with their purchase date
+        for item in purchase.items.all():
+            customer_map[cust_id]['items'].append({
+                'item': item,
+                'purchase_date': purchase.purchase_date,
+            })
+
+        # Collect all payments
+        for payment in purchase.payment_set.all():
+            customer_map[cust_id]['payments'].append(payment)
+
+    # Now, generate WhatsApp message for each customer
+    for data in customer_map.values():
+        msg = f"Customer: {data['customer'].name}\nArea: {data['customer'].area}\n"
+        msg += f"\nTotal Purchase: ₹{data['total_purchase_amount']}"
+        msg += f"\nTotal Paid: ₹{data['total_paid_amount']}"
+        msg += f"\nPending Due: ₹{data['pending_due_amount']}"
+
+        msg += "\n\nPurchased Items:"
+        for wrapped in data['items']:
+            item = wrapped['item']
+            date = wrapped['purchase_date'].strftime("%d-%b-%Y")
+            msg += f"\n- {item.item_name} x {item.quantity} (₹{item.subtotal}) on {date}"
+
+        msg += "\n\nPayments:"
+        for payment in data['payments']:
+            date = payment.payment_date.strftime("%d-%b-%Y")
+            msg += f"\n- ₹{payment.amount_paid} on {date}"
+
+        # Add encoded share link
+        data['whatsapp_share_url'] = f"https://wa.me/?text={quote_plus(msg)}"
+
+    # for cust_id, data in customer_map.items():
+    #     print(f"\nCustomer ID: {cust_id}")
+    #     print(f"Customer Name: {data['customer'].name}")
+    #     print("Purchases:")
+    #     for purchase in data['purchases']:
+    #         print(f"  - Purchase ID: {purchase.id}, Date: {purchase.purchase_date}, Total: {purchase.total_amount}")
+    #         print("    Items:")
+    #         for item in purchase.items.all():
+    #             print(f"      • {item.item_name} x {item.quantity}")
+    #         print("    Payments:")
+    #         for payment in purchase.payment_set.all():
+    #             print(f"      ₹{payment.amount_paid} on {payment.payment_date}")
 
     context = {
-        'purchases': purchases, 'segment': 'manage_orders',
+        'purchases': purchases, 'customer_purchases': list(customer_map.values()), 'segment': 'manage_orders',
     }
     return render(request, 'pages/payment_history.html', context)
 

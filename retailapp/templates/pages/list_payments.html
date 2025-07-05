@@ -37,16 +37,25 @@
                         <th>S.No</th>
                         <th>Customer</th>
                         <th>Amount Paid</th>
+                        <th>Mode</th>
                         <th>Payment Date</th>
                         <th>Purchase ID</th>
+                        <th>Due</th>
+                        <th>WhatsApp</th>
                       </tr>
                       {% for payment in page_obj %}
                         <tr>
                           <td>{{page_obj.start_index|add:forloop.counter0}}</td>
-                          <td>{{ payment.purchase.customer.name }} - {{ payment.purchase.customer.area }}</td>
+                          <td>{{ payment.customer_name }} - {{ payment.area }}</td>
                           <td>₹ {{ payment.amount_paid }}</td>
-                          <td>{{ payment.payment_date|date:"Y-m-d" }}</td>
-                          <td>#{{ payment.purchase.id }}</td>
+                          <th>{{ payment.payment_mode }}</th>
+                          <td>{{ payment.payment_date }}</td>
+                          <td>#{{ payment.purchase_id }}</td>
+                          <td>₹ {{ payment.due_amount }}</td>
+                          <td>
+                            <a href="{{ payment.share_url }}" class="btn btn-primary" target="_blank"><i class="ion-android-share-alt mr-2"></i> Share</a>
+                            <a href="{{ payment.sms_url }}" class="btn btn-warning" target="_blank"><i class="ion-email mr-2"></i> SMS</a>
+                          </td>
                         </tr>
                         {% endfor %}
                       <!-- <tr>
