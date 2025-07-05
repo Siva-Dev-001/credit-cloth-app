@@ -33,7 +33,7 @@ class DressPurchase(models.Model):
 
     @property
     def paid_amount(self):
-        return self.downpayment + sum(p.amount_paid for p in self.payment_set.all())
+        return sum(p.amount_paid for p in self.payment_set.all())
 
     @property
     def due_amount(self):
