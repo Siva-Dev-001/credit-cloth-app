@@ -132,8 +132,8 @@ def list_pending_dues(request):
 
 def default_no_payment_message(customer_name):
     return (
-        f"வணக்கம் {customer_name}, இன்று எந்தக் கட்டணமும் பெறப்படவில்லை. "
-        f"தயவு செய்து நிலுவை தொகையை விரைவில் செலுத்துங்கள். நன்றி – SK Dresses."
+        f"வணக்கம் {customer_name}, \n\nஇன்று எந்தக் கட்டணமும் பெறப்படவில்லை. "
+        f"\n\nதயவு செய்து நிலுவை தொகையை விரைவில் செலுத்துங்கள். \n\nநன்றி – SK Dresses."
     )
 
 
@@ -168,16 +168,16 @@ def list_payments(request):
 
             msg += f"\n\n{check_mark} நன்றி! - SK Dresses"
 
-            sms_msg = f"வணக்கம் {customer.name}, \n₹{payment.amount_paid} {payment.payment_type} மூலம் {date} தேதியில் பெற்றோம். நிலுவை பணம் ₹{purchase.due_amount}. நன்றி – SK Dresses."
+            sms_msg = f"வணக்கம் {customer.name}, \n\n₹{payment.amount_paid} {payment.payment_type} மூலம் {date} தேதியில் பெற்றோம். \n\nநிலுவை பணம் ₹{purchase.due_amount}. \n\nநன்றி – SK Dresses."
         else:
             msg = default_no_payment_message(customer.name)
             sms_msg = default_no_payment_message(customer.name)
 
-        share_url = f"https://wa.me/?text={quote_plus(msg)}"
+        share_url = f"https://wa.me/91{customer.phone}?text={quote_plus(msg)}"
 
-        encoded_msg = quote_plus(sms_msg)
+        # encoded_msg = quote_plus(sms_msg)
 
-        sms_url = f"sms:{customer.phone}?&body={encoded_msg}"
+        sms_url = f"sms:{customer.phone}?&body={sms_msg}"
         
         payment_data.append({
             "customer_name": customer.name,
