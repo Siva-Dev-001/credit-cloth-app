@@ -130,14 +130,74 @@ def list_pending_dues(request):
     context = {'customers': customers, 'customer_data': customer_data, 'page_obj': page_obj}
     return render(request, 'pages/list_pending_dues.html', context)   
 
+def default_no_payment_message(customer_name):
+    return (
+        f"வணக்கம் {customer_name}, இன்று எந்தக் கட்டணமும் பெறப்படவில்லை. "
+        f"தயவு செய்து நிலுவை தொகையை விரைவில் செலுத்துங்கள். நன்றி – SK Dresses."
+    )
+
+
 @login_required
 def list_payments(request):
     payments_count = Payment.objects.count()
     payments = Payment.objects.select_related('purchase__customer').order_by('-payment_date')
-    paginator = Paginator(payments, 10)  # 10 payments per page
+    payment_data = []
+    red_heart = '' # '\u2764\uFE0F'
+    star = '' #"\U0001F31F"
+    folded_hands = '' #"\U0001F64F"
+    location = '' #"\U0001F4CD"
+    recepit = '' #"\U0001F9FE"
+    ccard = '' #"\U0001F4B3"
+    calendar = '' #"\U0001F4C5"
+    pushupin = '' #"\U0001F4CC"
+    check_mark = '' #"\u2705"
+
+    for payment in payments:
+        customer = payment.purchase.customer
+        purchase = payment.purchase
+        date = payment.payment_date.strftime("%d-%b-%Y")
+        if payment.payment_type not in ["No Cash" ,"Discount"]:
+            msg = f"{star} அன்பார்ந்த வாடிக்கையாளர் {customer.name} அவர்களுக்கு வணக்கம்!\n"
+            # msg += f"🙏 எங்களின் சேவையை நம்பி தொடர்வதற்கு நன்றிகள்!\n"
+            msg += f"\n{folded_hands} நீங்கள் எங்களை தேர்ந்தெடுத்து, நம்பிக்கையுடன் தொடர்வது எங்களுக்கு பெருமை! \n"
+            
+            msg += f"\n{recepit} வாங்கிய பொருட்கள் தொகை: ₹{purchase.total_amount}"
+            msg += f"\n{ccard} இன்று செலுத்தியது: ₹{payment.amount_paid} ({payment.payment_type})"
+            msg += f"\n{calendar} தேதி: {date}"
+            msg += f"\n{pushupin} தற்போது நிலுவையில் உள்ள பணம் ₹{purchase.due_amount}"
+
+            msg += f"\n\n{check_mark} நன்றி! - SK Dresses"
+
+            sms_msg = f"வணக்கம் {customer.name}, \n₹{payment.amount_paid} {payment.payment_type} மூலம் {date} தேதியில் பெற்றோம். நிலுவை பணம் ₹{purchase.due_amount}. நன்றி – SK Dresses."
+        else:
+            msg = default_no_payment_message(customer.name)
+            sms_msg = default_no_payment_message(customer.name)
+
+        share_url = f"https://wa.me/?text={quote_plus(msg)}"
+
+        encoded_msg = quote_plus(sms_msg)
+
+        sms_url = f"sms:{customer.phone}?&body={encoded_msg}"
+        
+        payment_data.append({
+            "customer_name": customer.name,
+            "area": customer.area,
+            "amount_paid": payment.amount_paid,
+            "payment_mode": payment.payment_type,
+            "payment_date": date,
+            "purchase_id": purchase.id,
+            "due_amount": purchase.due_amount,
+            "share_url": share_url,
+            "sms_url": sms_url
+        })
+        # For display, store in a dict or use in template:
+        # print(f"{customer.name}: {share_url}")
+    
+    paginator = Paginator(payment_data, 10)  # 10 payments per page
 
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
+
     context = {'payments_count': payments_count, 'page_obj': page_obj}
     return render(request, 'pages/list_payments.html', context)
 
@@ -296,14 +356,19 @@ def record_payment(request):
     customer_dues = defaultdict(int)
 
     for purchase in purchases:
-        key = f"{purchase.customer.name} - {purchase.customer.area}"
-        customer_dues[key] += purchase.due_amount or 0
+        customer = purchase.customer
+        key = customer.id
+        label = f"{customer.name} - {customer.area}"
+        customer_dues[key] = {
+            'label': label,
+            'amount': customer_dues.get(key, {}).get('amount', 0) + (purchase.due_amount or 0)
+        }
 
     # Convert to regular dict if needed
     customer_dues = dict(customer_dues)
-    
+
     # Filter out zero dues
-    customer_dues = {k: v for k, v in customer_dues.items() if v > 0}
+    customer_dues = {k: v for k, v in customer_dues.items() if v['amount'] > 0}
     return render(request, 'pages/payment_entry.html', {'purchases': purchases, 'customer_dues': customer_dues, 'segment': 'record_payment'})
 
 @login_required

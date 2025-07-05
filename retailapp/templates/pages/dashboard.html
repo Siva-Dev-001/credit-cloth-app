@@ -125,7 +125,7 @@
                       <tbody>
                         {% for data in customer_data %}
                         <tr>
-                          <td class="font-weight-600">{{ data.customer.name }}</td>
+                          <td class="font-weight-600">{{ data.customer.name }} - {{ data.customer.area }}</td>
                           <td><a href="#" class="text-primary show-purchases" data-customer-id="{{ data.customer.id }}">{{ data.total_purchased|floatformat:2 }}</a></td>
                           <td><a href="#" class="text-primary show-payments" data-customer-id="{{ data.customer.id }}">{{ data.total_paid|floatformat:2 }}</a></td>
                           <td class="font-weight-600">{{ data.pending_due|floatformat:2 }}</td>
@@ -490,7 +490,7 @@
                       {% for payment in page_obj %}
                         <tr>
                           <td>{{ forloop.counter }}</td>
-                          <td>{{ payment.purchase.customer.name }}</td>
+                          <td>{{ payment.purchase.customer.name }} - {{ payment.purchase.customer.area }}</td>
                           <td>₹ {{ payment.amount_paid }}</td>
                           <td>{{ payment.payment_date|date:"Y-m-d" }}</td>
                           <td>#{{ payment.purchase.id }}</td>

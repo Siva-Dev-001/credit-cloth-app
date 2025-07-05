@@ -52,9 +52,9 @@
                       <label for="purchase">Select Purchase <span class="text-danger">*</span></label>
                       <select name="purchase" class="form-control" required>
                         <option value="" disabled selected>Select customer with pending dues</option>
-                        {% for key, amount in customer_dues.items %}
+                        {% for key, value in customer_dues.items %}
                           <option value="{{ key }}">
-                            {{ key }} — ₹{{ amount }} due
+                            {{ value.label }} — ₹{{ value.amount }} due
                           </option>
                         {% endfor %}
                       </select>
