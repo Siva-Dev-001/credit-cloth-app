@@ -59,19 +59,19 @@ def dashboard(request):
     purchases_count = DressPurchase.objects.count()
     payments_all = Payment.objects.count()
     pay_history = Payment.objects.all()
-    due_total = sum([p.due_amount for p in DressPurchase.objects.all()])
+    due_total = sum([p.total_due_pending for p in customers])
 
     customer_data = []
     for customer in customers:
         purchases = DressPurchase.objects.filter(customer=customer)
         
-        total_purchased = purchases.aggregate(total=Sum('total_amount'))['total'] or 0
-        total_paid = sum(p.paid_amount for p in purchases)  # paid_amount property!
-        pending_due = total_purchased - total_paid
+        total_purchased = customer.total_purchase_amount
+        total_paid = customer.total_paid_amount  # paid_amount property!
+        pending_due = customer.total_due_pending
         
         first_purchase = purchases.aggregate(first_date=Min('purchase_date'))['first_date']
         
-        payments = Payment.objects.filter(purchase__customer=customer)
+        payments = Payment.objects.filter(customer=customer)
         last_payment = payments.aggregate(last_date=Max('payment_date_time'))['last_date']
         
         customer_data.append({
@@ -84,7 +84,7 @@ def dashboard(request):
         })
     
 
-    payments = Payment.objects.select_related('purchase__customer').order_by('-payment_date')[:5] # only display last 5 payments
+    payments = Payment.objects.exclude(payment_type__in = ['No Cash', 'Discount']).select_related('customer').order_by('-payment_date')[:5] # only display last 5 payments
     paginator = Paginator(payments, 5)  # 10 payments per page
 
     page_number = request.GET.get('page')
@@ -106,13 +106,13 @@ def list_pending_dues(request):
     for customer in customers:
         purchases = DressPurchase.objects.filter(customer=customer)
         
-        total_purchased = purchases.aggregate(total=Sum('total_amount'))['total'] or 0
-        total_paid = sum(p.paid_amount for p in purchases)  # paid_amount property!
-        pending_due = total_purchased - total_paid
+        total_purchased = customer.total_purchase_amount
+        total_paid = customer.total_paid_amount  # paid_amount property!
+        pending_due = customer.total_due_pending
         
         first_purchase = purchases.aggregate(first_date=Min('purchase_date'))['first_date']
         
-        payments = Payment.objects.filter(purchase__customer=customer)
+        payments = Payment.objects.filter(customer=customer)
         last_payment = payments.aggregate(last_date=Max('payment_date_time'))['last_date']
         
         customer_data.append({
@@ -131,8 +131,9 @@ def list_pending_dues(request):
     return render(request, 'pages/list_pending_dues.html', context)   
 
 def default_no_payment_message(customer_name):
+    date = timezone.datetime.now().strftime("%d-%b-%Y")
     return (
-        f"வணக்கம் {customer_name}, \n\nஇன்று எந்தக் கட்டணமும் பெறப்படவில்லை. "
+        f"வணக்கம் {customer_name}, \n\nஇன்று {date} எந்தக் கட்டணமும் பெறப்படவில்லை. "
         f"\n\nதயவு செய்து நிலுவை தொகையை விரைவில் செலுத்துங்கள். \n\nநன்றி – SK Dresses."
     )
 
@@ -140,7 +141,7 @@ def default_no_payment_message(customer_name):
 @login_required
 def list_payments(request):
     payments_count = Payment.objects.count()
-    payments = Payment.objects.select_related('purchase__customer').order_by('-payment_date')
+    payments = Payment.objects.select_related('customer').order_by('-payment_date')
     payment_data = []
     red_heart = '' # '\u2764\uFE0F'
     star = '' #"\U0001F31F"
@@ -153,22 +154,21 @@ def list_payments(request):
     check_mark = '' #"\u2705"
 
     for payment in payments:
-        customer = payment.purchase.customer
-        purchase = payment.purchase
+        customer = payment.customer
         date = payment.payment_date.strftime("%d-%b-%Y")
         if payment.payment_type not in ["No Cash" ,"Discount"]:
             msg = f"{star} அன்பார்ந்த வாடிக்கையாளர் {customer.name} அவர்களுக்கு வணக்கம்!\n"
             # msg += f"🙏 எங்களின் சேவையை நம்பி தொடர்வதற்கு நன்றிகள்!\n"
             msg += f"\n{folded_hands} நீங்கள் எங்களை தேர்ந்தெடுத்து, நம்பிக்கையுடன் தொடர்வது எங்களுக்கு பெருமை! \n"
             
-            msg += f"\n{recepit} வாங்கிய பொருட்கள் தொகை: ₹{purchase.total_amount}"
+            msg += f"\n{recepit} வாங்கிய பொருட்கள் தொகை: ₹{customer.total_purchase_amount}"
             msg += f"\n{ccard} இன்று செலுத்தியது: ₹{payment.amount_paid} ({payment.payment_type})"
             msg += f"\n{calendar} தேதி: {date}"
-            msg += f"\n{pushupin} தற்போது நிலுவையில் உள்ள பணம் ₹{purchase.due_amount}"
+            msg += f"\n{pushupin} தற்போது நிலுவையில் உள்ள பணம் ₹{customer.total_due_pending}"
 
             msg += f"\n\n{check_mark} நன்றி! - SK Dresses"
 
-            sms_msg = f"வணக்கம் {customer.name}, \n\n₹{payment.amount_paid} {payment.payment_type} மூலம் {date} தேதியில் பெற்றோம். \n\nநிலுவை பணம் ₹{purchase.due_amount}. \n\nநன்றி – SK Dresses."
+            sms_msg = f"வணக்கம் {customer.name}, \n\n₹{payment.amount_paid} {payment.payment_type} மூலம் {date} தேதியில் பெற்றோம். \n\nநிலுவை பணம் ₹{customer.total_due_pending}. \n\nநன்றி – SK Dresses."
         else:
             msg = default_no_payment_message(customer.name)
             sms_msg = default_no_payment_message(customer.name)
@@ -185,8 +185,7 @@ def list_payments(request):
             "amount_paid": payment.amount_paid,
             "payment_mode": payment.payment_type,
             "payment_date": date,
-            "purchase_id": purchase.id,
-            "due_amount": purchase.due_amount,
+            "due_amount": customer.total_due_pending,
             "share_url": share_url,
             "sms_url": sms_url
         })
@@ -325,7 +324,7 @@ def purchase_product(request):
         purchase.total_amount = total_amount
         purchase.save()
         # Add Payment Info
-        Payment.objects.create(purchase=purchase, amount_paid=downpayment, payment_type=payment_type, payment_date = payment_date, payment_date_time = payment_date, reference_id=reference_id)
+        Payment.objects.create(customer=customer, amount_paid=downpayment, payment_type=payment_type, payment_date = payment_date, payment_date_time = payment_date, reference_id=reference_id)
         return redirect('purchase_product')
     return render(request, 'pages/product_purchase.html', {'customers': customers, 'segment': 'product_purchase'})
 
@@ -337,9 +336,9 @@ def record_payment(request):
     if request.method == 'POST':
         print(request.POST)
         try:
-            purchase = get_object_or_404(DressPurchase, id=request.POST['purchase'])
+            customer = get_object_or_404(Customer, id=request.POST['customer_id'])
             Payment.objects.create(
-                purchase=purchase,
+                customer=customer,
                 amount_paid=request.POST['amount_paid'],
                 payment_type=request.POST['payment_mode'],
                 collected_by=request.session.get('username',''),
@@ -361,7 +360,7 @@ def record_payment(request):
         label = f"{customer.name} - {customer.area}"
         customer_dues[key] = {
             'label': label,
-            'amount': customer_dues.get(key, {}).get('amount', 0) + (purchase.due_amount or 0)
+            'amount': customer.total_due_pending or 0
         }
 
     # Convert to regular dict if needed
@@ -373,7 +372,7 @@ def record_payment(request):
 
 @login_required
 def payment_history(request):
-    purchases = DressPurchase.objects.select_related('customer').prefetch_related('payment_set', 'items')
+    purchases = DressPurchase.objects.select_related('customer').prefetch_related('items', 'customer__payment')
     # Use OrderedDict to preserve order and avoid potential issues
     customer_map = OrderedDict()
 
@@ -385,27 +384,20 @@ def payment_history(request):
             customer_map[cust_id] = {
                 'customer': customer,
                 'items': [],
-                'payments': [],
-                'total_purchase_amount': 0,
-                'total_paid_amount': 0,
-                'pending_due_amount': 0,
+                'payments': list({p for p in customer.payment.all()}),
+                'total_purchase_amount': customer.total_purchase_amount or 0,
+                'total_paid_amount': customer.total_paid_amount or 0,
+                'pending_due_amount': customer.total_due_pending or 0,
             }
 
-        # Add purchase totals
-        customer_map[cust_id]['total_purchase_amount'] += purchase.total_amount or 0
-        customer_map[cust_id]['total_paid_amount'] += purchase.paid_amount or 0
-        customer_map[cust_id]['pending_due_amount'] += purchase.due_amount or 0
-
-        # Collect all items, tagging them with their purchase date
+        # Collect purchase items
         for item in purchase.items.all():
             customer_map[cust_id]['items'].append({
                 'item': item,
                 'purchase_date': purchase.purchase_date,
             })
 
-        # Collect all payments
-        for payment in purchase.payment_set.all():
-            customer_map[cust_id]['payments'].append(payment)
+        
 
     # Now, generate WhatsApp message for each customer
     for data in customer_map.values():
@@ -426,7 +418,7 @@ def payment_history(request):
             msg += f"\n- ₹{payment.amount_paid} on {date}"
 
         # Add encoded share link
-        data['whatsapp_share_url'] = f"https://wa.me/?text={quote_plus(msg)}"
+        data['whatsapp_share_url'] = f"https://wa.me/91{data['customer'].phone}?text={quote_plus(msg)}"
 
     # for cust_id, data in customer_map.items():
     #     print(f"\nCustomer ID: {cust_id}")
@@ -438,7 +430,7 @@ def payment_history(request):
     #         for item in purchase.items.all():
     #             print(f"      • {item.item_name} x {item.quantity}")
     #         print("    Payments:")
-    #         for payment in purchase.payment_set.all():
+    #         for payment in customer.payment.all():
     #             print(f"      ₹{payment.amount_paid} on {payment.payment_date}")
 
     context = {
@@ -520,7 +512,8 @@ def delete_inventory_item(request, item_id):
 
 
 def customer_payments_json(request, customer_id):
-    payments = Payment.objects.filter(purchase__customer_id=customer_id).order_by('-payment_date_time')
+    customer = get_object_or_404(Customer, id=customer_id)
+    payments = Payment.objects.filter(customer=customer).order_by('-payment_date_time')
     data = [
         {
             'amount_paid': p.amount_paid,
@@ -532,7 +525,8 @@ def customer_payments_json(request, customer_id):
     return JsonResponse(data, safe=False)
 
 def customer_purchases_json(request, customer_id):
-    purchases = PurchaseItem.objects.filter(purchase__customer_id=customer_id).order_by('-purchase__purchase_date')
+    customer = get_object_or_404(Customer, id=customer_id)
+    purchases = PurchaseItem.objects.filter(purchase__customer=customer).order_by('-purchase__purchase_date')
     data = [
         {
             'name': item.item_name,
