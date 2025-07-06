@@ -49,8 +49,8 @@
                     {% csrf_token %}
                     <div class="row">
                     <div class="form-group col-lg-4 mb-3">
-                      <label for="purchase">Select Purchase <span class="text-danger">*</span></label>
-                      <select name="purchase" class="form-control" required>
+                      <label for="customer_id">Select Purchase <span class="text-danger">*</span></label>
+                      <select name="customer_id" class="form-control" required>
                         <option value="" disabled selected>Select customer with pending dues</option>
                         {% for key, value in customer_dues.items %}
                           <option value="{{ key }}">

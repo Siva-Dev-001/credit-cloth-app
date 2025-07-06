@@ -484,16 +484,17 @@
                         <th>S.No</th>
                         <th>Customer</th>
                         <th>Amount Paid</th>
+                        <th>Payment Mode</th>
                         <th>Payment Date</th>
-                        <th>Purchase ID</th>
                       </tr>
                       {% for payment in page_obj %}
                         <tr>
                           <td>{{ forloop.counter }}</td>
-                          <td>{{ payment.purchase.customer.name }} - {{ payment.purchase.customer.area }}</td>
+                          <td>{{ payment.customer.name }} - {{ payment.customer.area }}</td>
                           <td>₹ {{ payment.amount_paid }}</td>
+                          <td>{{ payment.payment_type }}</td>
                           <td>{{ payment.payment_date|date:"Y-m-d" }}</td>
-                          <td>#{{ payment.purchase.id }}</td>
+                          
                         </tr>
                         {% endfor %}
                      

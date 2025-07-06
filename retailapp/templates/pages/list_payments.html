@@ -36,12 +36,11 @@
                   <tr>
                     <th>S.No</th>
                     <th>Customer</th>
-                    <th>Amount Paid</th>
-                    <th>Mode</th>
-                    <th>Payment Date</th>
-                    <th>Purchase ID</th>
-                    <th>Due</th>
-                    <th>WhatsApp</th>
+                    <th>Amount_Paid</th>
+                    <th>Payment_Mode</th>
+                    <th>Payment_Date</th>
+                    <th>Pending_Due_Amount</th>
+                    <th>Share_WhatsApp_SMS</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -52,7 +51,6 @@
                     <td>₹ {{ payment.amount_paid }}</td>
                     <th>{{ payment.payment_mode }}</th>
                     <td>{{ payment.payment_date }}</td>
-                    <td>#{{ payment.purchase_id }}</td>
                     <td>₹ {{ payment.due_amount }}</td>
                     <td>
                       <a href="{{ payment.share_url }}" class="btn btn-primary btn-sm" target="_blank"><i class="ion-android-share-alt mr-2"></i> Share</a>

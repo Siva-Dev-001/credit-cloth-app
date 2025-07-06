@@ -18,11 +18,27 @@ class Customer(models.Model):
     ]
     payment_frequency = models.CharField(max_length=10, choices=PAYMENT_FREQUENCY_CHOICES)
 
+    @property
+    def total_purchase_amount(self):
+        return sum(p.total_amount or 0 for p in self.dress_purchase.all())
+
+    @property
+    def total_paid_amount(self):
+        return sum(
+            payment.amount_paid or 0
+            # for purchase in self.dress_purchase.all()
+            for payment in self.payment.all()
+        )
+
+    @property
+    def total_due_pending(self):
+        return self.total_purchase_amount - self.total_paid_amount
+
     def __str__(self):
-        return self.user.get_full_name()
+        return self.name
 
 class DressPurchase(models.Model):
-    customer = models.ForeignKey('Customer', on_delete=models.CASCADE)
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='dress_purchase')
     # item_name = models.CharField(max_length=255)
     # unit_price = models.DecimalField(max_digits=10, decimal_places=2)
     # quantity = models.PositiveIntegerField()
@@ -31,19 +47,19 @@ class DressPurchase(models.Model):
     purchase_date = models.DateTimeField(null=True)
     auto_purchase_date = models.DateTimeField(auto_now_add=True, null=True)
 
-    @property
-    def paid_amount(self):
-        return sum(p.amount_paid for p in self.payment_set.all())
+    # @property
+    # def paid_amount(self):
+    #     return sum(p.amount_paid for p in self.payment.all())
 
-    @property
-    def due_amount(self):
-        return self.total_amount - self.paid_amount
+    # @property
+    # def due_amount(self):
+    #     return self.total_amount - self.paid_amount
 
     def __str__(self):
         return f"{self.item_name} - {self.customer.name}"
     
 class Payment(models.Model):
-    purchase = models.ForeignKey('DressPurchase', on_delete=models.CASCADE)
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='payment')
     amount_paid = models.DecimalField(max_digits=10, decimal_places=2)
     payment_type = models.CharField(max_length=100, null=True, blank=True)
     payment_date = models.DateField(null=True)
@@ -63,7 +79,7 @@ class ReturnOrExchange(models.Model):
         (EXCHANGE, 'Exchange'),
     ]
 
-    purchase = models.ForeignKey('DressPurchase', on_delete=models.CASCADE)
+    purchase = models.ForeignKey(DressPurchase, on_delete=models.CASCADE, related_name='return_exchange')
     request_type = models.CharField(max_length=10, choices=REQUEST_TYPE_CHOICES)
     condition_notes = models.TextField()
     request_date = models.DateField(auto_now_add=True)
@@ -96,16 +112,16 @@ class InventoryItem(models.Model):
         return self.name
     
 class ReturnRequest(models.Model):
-    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
-    purchased_item = models.ForeignKey(PurchaseItem, on_delete=models.CASCADE)
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='return_request')
+    purchased_item = models.ForeignKey(PurchaseItem, on_delete=models.CASCADE, related_name='return_request')
     reason = models.TextField()
     photo = models.ImageField(upload_to='return_photos/')
     created_at = models.DateTimeField(auto_now_add=True)
     is_approved = models.BooleanField(null=True, blank=True)
 
 class ExchangeRequest(models.Model):
-    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
-    purchased_item = models.ForeignKey(PurchaseItem, on_delete=models.CASCADE)
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='exchange_request')
+    purchased_item = models.ForeignKey(PurchaseItem, on_delete=models.CASCADE, related_name='exchange_request')
     reason = models.TextField()
     checklist_not_washed = models.BooleanField(default=False)
     checklist_not_cut = models.BooleanField(default=False)
