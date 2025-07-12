@@ -400,25 +400,50 @@ def payment_history(request):
         
 
     # Now, generate WhatsApp message for each customer
-    for data in customer_map.values():
-        msg = f"Customer: {data['customer'].name}\nArea: {data['customer'].area}\n"
-        msg += f"\nTotal Purchase: ₹{data['total_purchase_amount']}"
-        msg += f"\nTotal Paid: ₹{data['total_paid_amount']}"
-        msg += f"\nPending Due: ₹{data['pending_due_amount']}"
+    # for data in customer_map.values():
+    #     msg = f"Customer: {data['customer'].name}\nArea: {data['customer'].area}\n"
+    #     msg += f"\nTotal Purchase: ₹{data['total_purchase_amount']}"
+    #     msg += f"\nTotal Paid: ₹{data['total_paid_amount']}"
+    #     msg += f"\nPending Due: ₹{data['pending_due_amount']}"
 
-        msg += "\n\nPurchased Items:"
+    #     msg += "\n\nPurchased Items:"
+    #     for wrapped in data['items']:
+    #         item = wrapped['item']
+    #         date = wrapped['purchase_date'].strftime("%d-%b-%Y")
+    #         msg += f"\n- {item.item_name} x {item.quantity} (₹{item.subtotal}) on {date}"
+
+    #     msg += "\n\nPayments:"
+    #     for payment in data['payments']:
+    #         date = payment.payment_date.strftime("%d-%b-%Y")
+    #         msg += f"\n- ₹{payment.amount_paid} on {date}"
+
+        
+
+    for data in customer_map.values():
+        tmsg = f" வணக்கம் {data['customer'].name} அவர்கள்,\n பகுதி: {data['customer'].area}\n"
+        tmsg += f"\n மொத்த வாங்கிய தொகை: ₹{data['total_purchase_amount']}"
+        tmsg += f"\n செலுத்திய தொகை: ₹{data['total_paid_amount']}"
+        tmsg += f"\n நிலுவை தொகை: ₹{data['pending_due_amount']}"
+
+        tmsg += "\n\n வாங்கிய பொருட்கள்:"
         for wrapped in data['items']:
             item = wrapped['item']
             date = wrapped['purchase_date'].strftime("%d-%b-%Y")
-            msg += f"\n- {item.item_name} x {item.quantity} (₹{item.subtotal}) on {date}"
+            tmsg += f"\n- {item.item_name} - {item.quantity} (₹{item.subtotal}) - {date}"
 
-        msg += "\n\nPayments:"
+        tmsg += "\n\n கட்டண விவரங்கள்:"
         for payment in data['payments']:
             date = payment.payment_date.strftime("%d-%b-%Y")
-            msg += f"\n- ₹{payment.amount_paid} on {date}"
+            tmsg += f"\n- ₹{payment.amount_paid} - {date}"
+
+        tmsg += "\n\n எங்கள் கடையை தேர்ந்தெடுத்ததற்காக நன்றி! - SK Dresses"
 
         # Add encoded share link
-        data['whatsapp_share_url'] = f"https://wa.me/91{data['customer'].phone}?text={quote_plus(msg)}"
+        data['whatsapp_share_url'] = f"https://wa.me/91{data['customer'].phone}?text={quote_plus(tmsg)}"
+
+        # Add encode share link
+        data['sms_share_url'] = f"sms:{data['customer'].phone}?&body={tmsg}"
+
 
     # for cust_id, data in customer_map.items():
     #     print(f"\nCustomer ID: {cust_id}")
